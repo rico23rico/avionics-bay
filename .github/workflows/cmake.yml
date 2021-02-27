@@ -15,11 +15,8 @@ jobs:
     runs-on:  ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        include:
-          - runs-on: ubuntu-latest
-            compiler: gcc
-            gcc: 8
+        os: [ubuntu-20.04, windows-latest, macos-latest]
+
     steps:
     - uses: actions/checkout@v2
 
@@ -37,7 +34,7 @@ jobs:
     - name: Run cmake (Linux)
       shell: bash
       working-directory: ${{github.workspace}}/src/build
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-20.04'
       run: cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Run cmake (Mac)
@@ -79,7 +76,7 @@ jobs:
 
 
   package:
-     runs-on: ubuntu-latest
+     runs-on: ubuntu-20.04
      needs: build
      steps:
       - name: Checkout code
