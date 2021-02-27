@@ -1,0 +1,136 @@
+name: CMake
+
+on: [push]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on:  ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create Build Directory
+      shell: bash
+      working-directory: ${{github.workspace}}/src
+      run: mkdir build
+      
+    - name: Run cmake (Windows)
+      shell: bash
+      working-directory: ${{github.workspace}}/src/build
+      if: matrix.os == 'windows-latest'
+      run: cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "MinGW Makefiles"
+      
+    - name: Run cmake (Linux)
+      shell: bash
+      working-directory: ${{github.workspace}}/src/build
+      if: matrix.os == 'ubuntu-latest'
+      run: cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+    - name: Run cmake (Mac)
+      shell: bash
+      working-directory: ${{github.workspace}}/src/build
+      if: matrix.os == 'macos-latest'
+      run: cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+    - name: Build
+      working-directory: ${{github.workspace}}/src/build
+      shell: bash
+      run: cmake --build .
+
+    - name: Install
+      working-directory: ${{github.workspace}}/src/build
+      shell: bash
+      run: cmake --build . --target install
+
+    - name: Upload artifacts - Linux
+      uses: actions/upload-artifact@v2
+      with:
+        name: libxpfiles-linux
+        path: ${{github.workspace}}/64/libxpfiles.so
+        if-no-files-found: ignore
+      
+    - name: Upload artifacts - Windows
+      uses: actions/upload-artifact@v2
+      with:
+        name: libxpfiles-windows
+        path: ${{github.workspace}}/64/xpfiles.dll
+        if-no-files-found: ignore
+        
+    - name: Upload artifacts - Mac
+      uses: actions/upload-artifact@v2
+      with:
+        name: libxpfiles-mac
+        path: ${{github.workspace}}/64/libxpfiles.dylib
+        if-no-files-found: ignore 
+
+
+  package:
+     runs-on: ubuntu-latest
+     needs: build
+     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+           
+      - name: Download artifact Linux
+        uses: actions/download-artifact@v2
+        with:
+          name: libxpfiles-linux
+
+      - name: Download artifact Mac
+        uses: actions/download-artifact@v2
+        with:
+          name: libxpfiles-mac
+
+      - name: Download artifact Windows
+        uses: actions/download-artifact@v2
+        with:
+          name: libxpfiles-windows
+        
+      - name: Check artifacts
+        shell: bash
+        working-directory: ${{github.workspace}}
+        run: ls -l
+
+      - name: Zip everything
+        shell: bash
+        working-directory: ${{github.workspace}}
+        run: zip xpfiles.zip *.so *.dll *.dylib
+
+
+      # Publish a new release
+      - name: Create Release
+        id: create_release
+        uses: GongT/actions-recreate-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: latest-build
+          release_name: Latest auto-build
+          body: |
+            This is an automatic build. Possibly unstable.
+            Branch - ${{ github.ref }}
+            Actor  - ${{ github.actor }}
+          draft: false
+          prerelease: true
+
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: xpfiles.zip
+          asset_name: xpfiles-binaries.zip
+          asset_content_type: application/zip
