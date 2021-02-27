@@ -63,7 +63,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: libxpfiles-windows
-        path: ${{github.workspace}}/64/xpfiles.dll
+        path: ${{github.workspace}}/64/libxpfiles.dll
         if-no-files-found: ignore
         
     - name: Upload artifacts - Mac
