@@ -16,6 +16,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - runs-on: ubuntu-latest
+            compiler: gcc
+            gcc: 8
     steps:
     - uses: actions/checkout@v2
 
