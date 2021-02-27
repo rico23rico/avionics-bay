@@ -3,10 +3,11 @@ cmake_minimum_required(VERSION 3.10)
 
 
 # Set C++14 standard
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(SOURCES plugin.cpp
+            data_file_reader.cpp
             utilities/logger.cpp)
 
 add_library(xpfiles SHARED ${SOURCES})
