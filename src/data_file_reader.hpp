@@ -20,6 +20,10 @@ private:
     std::string xplane_directory;
     
     std::thread my_thread;
+    
+    
+    
+    void perform_init_checks();
 };
 
 }
