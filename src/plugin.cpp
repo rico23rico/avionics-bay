@@ -13,15 +13,21 @@ using xpfiles::Logger;
 using xpfiles::ENDL;
 using xpfiles::logger_level_t;
 using xpfiles::DataFileReader;
+using xpfiles::XPData;
 
 static std::string fatal_error;
 static std::shared_ptr<Logger> logger;
+static std::shared_ptr<XPData> xpdata;
 
 static std::shared_ptr<DataFileReader> dfr;
 
 namespace xpfiles {
     std::shared_ptr<Logger> get_logger() noexcept {
         return logger;
+    }
+
+    std::shared_ptr<XPData> get_xpdata() noexcept {
+        return xpdata;
     }
     
     bool init_data_file_reader(const char* xplane_path) {
@@ -48,6 +54,8 @@ bool initialize(const char* xplane_path) {
     }
 
     LOG << logger_level_t::INFO << "Initializing xpfiles..." << ENDL;
+
+    xpdata = std::make_shared<XPData>();
 
     if (! xpfiles::init_data_file_reader(xplane_path)) {
         return false;

@@ -14,6 +14,11 @@
 
 namespace xpfiles {
 
+
+//**************************************************************************************************
+// INITIALIZATION
+//**************************************************************************************************
+
 static bool is_a_directory(const std::string& name) noexcept {
     struct stat info;
     if( stat( name.c_str(), &info ) != 0 ) {
@@ -72,10 +77,17 @@ DataFileReader::DataFileReader(const std::string &xplane_directory) : xplane_dir
 
 }
 
+//**************************************************************************************************
+// WORKER
+//**************************************************************************************************
+
+
 void DataFileReader::worker() noexcept {
     for (volatile int i=0; i<100000; i++) {
     
     }
+    
+    get_xpdata()->set_is_ready(true);
 }
 
 } // namespace xpfiles

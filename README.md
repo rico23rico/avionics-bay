@@ -1,4 +1,4 @@
-[![Building](https://github.com/rico23rico/xpfiles/actions/workflows/cmake.yml/badge.svg)](https://github.com/rico23rico/xpfiles/actions)
+[![Building](https://github.com/rico23rico/avionics-bay/actions/workflows/cmake.yml/badge.svg)](https://github.com/rico23rico/avionics-bay/actions)
 
 
 This is a C++ support library for X-Plane 11 Lua plugins (working via FFI).
