@@ -1,9 +1,18 @@
 #include "data_file_reader.hpp"
+
+#include "constants.hpp"
+#include "data_types.hpp"
 #include "plugin.hpp"
 
+#include <fstream>
+#include <list>
+#include <numeric>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <stdexcept>
+#include <vector>
 
 #define LOG *this->logger
 
@@ -13,6 +22,26 @@
 
 
 namespace xpfiles {
+
+std::list<std::string> all_string_container;
+
+//**************************************************************************************************
+// String support
+//**************************************************************************************************
+
+std::vector<std::string> str_explode(std::string const & s, char delim)
+{
+    // From: https://stackoverflow.com/questions/12966957/is-there-an-equivalent-in-c-of-phps-explode-function
+    std::vector<std::string> result;
+    std::istringstream iss(s);
+
+    for (std::string token; std::getline(iss, token, delim); )
+    {
+        result.push_back(std::move(token));
+    }
+
+    return result;
+}
 
 
 //**************************************************************************************************
@@ -83,11 +112,74 @@ DataFileReader::DataFileReader(const std::string &xplane_directory) : xplane_dir
 
 
 void DataFileReader::worker() noexcept {
-    for (volatile int i=0; i<100000; i++) {
+
+    parse_navaids_file();
+
+    get_xpdata()->set_is_ready(true);
+}
+
+//**************************************************************************************************
+// WORKER functions - NAVAIDS
+//**************************************************************************************************
+void DataFileReader::parse_navaids_file() {
+    std::ifstream ifs;
+    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    ifs.open(xplane_directory + NAV_FILE_PATH, std::ifstream::in);
     
+    std::string line;
+    int line_no = 0;
+    while (std::getline(ifs, line)) {
+        if (line.size() > 0 and line[0] != 'I') {
+            parse_navaids_file_line(line_no, line);
+        }
+        line_no++;
     }
     
-    get_xpdata()->set_is_ready(true);
+    ifs.close();
+}
+
+void DataFileReader::parse_navaids_file_line(int line_no, const std::string &line) {
+    auto splitted = str_explode(line, ' ');
+    
+    if (splitted.size() < 5) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_nav.dat:" << line_no << ": invalid nr. parameters." << ENDL;
+        return;     // Something invalid here
+    }
+    
+    try {
+
+        // Read the first field: line id
+        auto type = std::stoi(splitted[0]);
+        if ((type < NAV_ID_NDB || type > NAV_ID_IM) && (type < NAV_ID_DME or type > NAV_ID_DME_ALONE)) {
+            return; // Not interesting point (actually no line should match this condition)
+        }
+
+        // Concatenate the navaid full name
+        all_string_container.emplace_back(std::accumulate(splitted.begin()+10, splitted.end(), std::string("")));
+        const char* full_name = all_string_container.back().c_str();
+        
+        all_string_container.push_back(splitted[7]);
+        const char* icao_name = all_string_container.back().c_str();
+        
+        xpdata_navaid_t navaid = {
+            .id       = icao_name,
+            .full_name= full_name,
+            .type     = type,
+            .coords   = {
+                .lat = std::stod(splitted[2]),
+                .lon = std::stod(splitted[3])
+            },
+            .altitude = std::stod(splitted[4]),
+            .frequency = std::stod(splitted[5])
+        };
+    
+    } catch(const std::invalid_argument &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_nav.dat:" << line_no << ": invalid parameter (failed str->int conversion)." << ENDL;
+        return;
+    } catch(const std::out_of_range &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_nav.dat:" << line_no << ": invalid parameter (out-of-range str->int conversion)." << ENDL;
+        return;
+    }
 }
 
 } // namespace xpfiles

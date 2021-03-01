@@ -22,8 +22,11 @@ private:
     std::thread my_thread;
     
     
-    
     void perform_init_checks();
+
+    void parse_navaids_file();
+    void parse_navaids_file_line(int line_no, const std::string &line);
+
 };
 
 }
