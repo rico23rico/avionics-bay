@@ -7,6 +7,7 @@ typedef struct xpdata_coords_t {
     double lat;
     double lon;
 } xpdata_coords_t;
+
 typedef struct xpdata_navaid_t {
     const char *id;         // e.g., SRN
     int id_len;
@@ -15,7 +16,7 @@ typedef struct xpdata_navaid_t {
     xpdata_navaid_type_t type; // Constants NAV_ID_* 
     xpdata_coords_t coords;
     int altitude;
-    int frequency;
+    unsigned int frequency;
 } xpdata_navaid_t;
 
 typedef struct xpdata_navaid_array_t {

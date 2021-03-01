@@ -7,7 +7,6 @@
 #include <cassert>
 #include <fstream>
 #include <list>
-#include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -44,6 +43,20 @@ std::vector<std::string> str_explode(std::string const & s, char delim)
     }
 
     return result;
+}
+
+template <typename I>
+std::string str_implode(I begin, I end, std::string const& separator)
+{
+    // From: https://stackoverflow.com/questions/6097927/is-there-a-way-to-implement-analog-of-pythons-separator-join-in-c
+    std::ostringstream result;
+    if (begin != end) {
+        result << *begin++;
+    }
+    while (begin != end) {
+        result << separator << *begin++;
+    }
+    return result.str();
 }
 
 
@@ -125,6 +138,8 @@ void DataFileReader::worker() noexcept {
     try {
         parse_navaids_file();
         get_xpdata()->index_navaids_by_name();
+        get_xpdata()->index_navaids_by_freq();
+        get_xpdata()->index_navaids_by_coords();
     } 
     catch(const std::ifstream::failure &e) {
         LOG << logger_level_t::ERROR << "[DataFileReader] File exception: " << e.what() << ENDL;
@@ -178,7 +193,7 @@ void DataFileReader::parse_navaids_file_line(int line_no, const std::string &lin
         }
 
         // Concatenate the navaid full name
-        all_string_container.emplace_back(std::accumulate(splitted.begin()+10, splitted.end(), std::string("")));
+        all_string_container.emplace_back(str_implode(splitted.begin()+10, splitted.end(), " "));
         const char* full_name = all_string_container.back().c_str();
         int full_name_len = all_string_container.back().size();
         
@@ -197,7 +212,7 @@ void DataFileReader::parse_navaids_file_line(int line_no, const std::string &lin
                 .lon = std::stod(splitted[2])
             },
             .altitude = std::stoi(splitted[3]),
-            .frequency = std::stoi(splitted[4])
+            .frequency = static_cast<unsigned>(std::stoi(splitted[4]))
         };
     
         xpdata->push_navaid(std::move(navaid));

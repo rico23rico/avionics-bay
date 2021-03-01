@@ -1,6 +1,8 @@
 #include "plugin.hpp"
+
 #include "data_file_reader.hpp"
 #include "utilities/logger.hpp"
+#include "api.hpp"
 
 #include <cassert>
 #include <cstring>
@@ -59,25 +61,13 @@ bool initialize(const char* xplane_path) {
         return false;
     }
 
+    xpfiles::api_init();
+
     LOG << logger_level_t::INFO << "Initialization complete." << ENDL;
     return true;
 }
 
 const char* get_error(void) {
     return fatal_error.c_str();
-}
-
-xpdata_navaid_array_t get_navaid_by_name(xpdata_navaid_type_t type, const char* name) {
-    struct xpdata_navaid_array_t array;
-    auto std_vec = xpdata->get_navaids_by_name(type, name);
-    
-    array.navaids = std_vec.first;
-    array.len = std_vec.second;
-    
-    return array;
-}
-
-bool xpdata_is_ready(void) {
-    return xpdata->get_is_ready();
 }
 

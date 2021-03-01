@@ -6,7 +6,8 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(SOURCES data_file_reader.cpp
+set(SOURCES api.cpp
+            data_file_reader.cpp
             plugin.cpp
             xpdata.cpp
             utilities/logger.cpp)

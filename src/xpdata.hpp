@@ -4,9 +4,11 @@
 #include "data_types.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace xpfiles {
 
@@ -22,11 +24,17 @@ public:
 
     void push_navaid(xpdata_navaid_t &&navaid) noexcept;
     void index_navaids_by_name() noexcept;
+    void index_navaids_by_freq() noexcept;
+    void index_navaids_by_coords() noexcept;
 
     std::pair<const xpdata_navaid_t* const*, size_t> get_navaids_by_name(xpdata_navaid_type_t type, std::string name) const noexcept;
 
+    std::pair<const xpdata_navaid_t* const*, size_t> get_navaids_by_freq(xpdata_navaid_type_t type, unsigned int freq) const noexcept;
+
+    std::pair<const xpdata_navaid_t* const*, size_t> get_navaids_by_coords(xpdata_navaid_type_t type, double lat, double lon, bool extended_range) const noexcept;
+
 private:
-    bool is_ready;
+    std::atomic<bool> is_ready;
 
     std::map<xpdata_navaid_type_t, std::vector<xpdata_navaid_t>> navaids_all;
     std::map<xpdata_navaid_type_t, std::unordered_map<std::string, std::vector<xpdata_navaid_t*>>> navaids_name;
