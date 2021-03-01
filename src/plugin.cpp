@@ -4,10 +4,8 @@
 
 #include <cassert>
 #include <cstring>
-#include <iostream>
 
-
-#define LOG *logger
+#define LOG *logger << xpfiles::STARTL
 
 using xpfiles::Logger;
 using xpfiles::ENDL;
@@ -67,5 +65,19 @@ bool initialize(const char* xplane_path) {
 
 const char* get_error(void) {
     return fatal_error.c_str();
+}
+
+xpdata_navaid_array_t get_navaid_by_name(xpdata_navaid_type_t type, const char* name) {
+    struct xpdata_navaid_array_t array;
+    auto std_vec = xpdata->get_navaids_by_name(type, name);
+    
+    array.navaids = std_vec.first;
+    array.len = std_vec.second;
+    
+    return array;
+}
+
+bool xpdata_is_ready(void) {
+    return xpdata->get_is_ready();
 }
 

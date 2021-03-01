@@ -6,8 +6,9 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(SOURCES plugin.cpp
-            data_file_reader.cpp
+set(SOURCES data_file_reader.cpp
+            plugin.cpp
+            xpdata.cpp
             utilities/logger.cpp)
 
 add_library(xpfiles SHARED ${SOURCES})
@@ -15,7 +16,7 @@ add_library(xpfiles SHARED ${SOURCES})
 
 # Platform specific
 if (UNIX AND NOT APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --no-gnu-unique")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --no-gnu-unique -pthread")
 endif (UNIX AND NOT APPLE)
 
 

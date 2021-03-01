@@ -8,7 +8,7 @@
 #include <sstream>
 #include <string>
 
-#define LOG_FILENAME "xpfiles-internal.log"
+#define LOG_FILENAME "avionics-bay-internal.log"
 #define MAX_QUEUE_LOGS 1024
 
 static std::ofstream log_file;

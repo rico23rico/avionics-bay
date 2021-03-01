@@ -2,6 +2,7 @@
 #define DATA_FILE_READER_H
 
 #include "utilities/logger.hpp"
+#include "xpdata.hpp"
 
 #include <string>
 #include <thread>
@@ -17,6 +18,7 @@ public:
 
 private:
     std::shared_ptr<Logger> logger;
+    std::shared_ptr<XPData> xpdata;
     std::string xplane_directory;
     
     std::thread my_thread;

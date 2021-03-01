@@ -1,6 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include <mutex>
 #include <string>
 
 namespace xpfiles {
@@ -17,6 +18,8 @@ typedef enum class logger_level_e {
 
 extern class LoggerCloser {
 } ENDL;
+extern class LoggerStarter {
+} STARTL;
 
 class Logger
 {
@@ -44,9 +47,9 @@ private:
 
     void save_log(logger_level_t level, const std::string &message) noexcept;
 
-    std::string curr_msg;   // Do not need synchronization at this stage
-    logger_level_t curr_level;   // Do not need synchronization at this stage
-
+    std::string curr_msg;
+    logger_level_t curr_level;
+    std::mutex msg_mx;
 };
 
 template<>
@@ -80,6 +83,13 @@ inline Logger &Logger::operator<<<logger_level_t>(logger_level_t level) {
 template<>
 inline Logger &Logger::operator<<<LoggerCloser>(LoggerCloser) {
     this->save_log(this->curr_level, this->curr_msg);
+    this->msg_mx.unlock();
+    return *this;
+}
+
+template<>
+inline Logger &Logger::operator<<<LoggerStarter>(LoggerStarter) {
+    this->msg_mx.lock();
     return *this;
 }
 

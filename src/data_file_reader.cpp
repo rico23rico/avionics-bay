@@ -4,6 +4,7 @@
 #include "data_types.hpp"
 #include "plugin.hpp"
 
+#include <cassert>
 #include <fstream>
 #include <list>
 #include <numeric>
@@ -14,7 +15,7 @@
 #include <sys/stat.h>
 #include <vector>
 
-#define LOG *this->logger
+#define LOG *this->logger << STARTL
 
 #define NAV_FILE_PATH  "Resources/default data/earth_nav.dat"
 #define FIX_FILE_PATH  "Resources/default data/earth_fix.dat"
@@ -37,7 +38,9 @@ std::vector<std::string> str_explode(std::string const & s, char delim)
 
     for (std::string token; std::getline(iss, token, delim); )
     {
-        result.push_back(std::move(token));
+        if (token.size() > 0) {
+            result.push_back(std::move(token));
+        }
     }
 
     return result;
@@ -94,13 +97,19 @@ void DataFileReader::perform_init_checks() {
 
 DataFileReader::DataFileReader(const std::string &xplane_directory) : xplane_directory(xplane_directory) {
     this->logger = get_logger();
-
+    this->xpdata = get_xpdata();
+    
+    assert(this->logger && this->xpdata);
+    
     LOG << logger_level_t::DEBUG << "Initializing DataFileReader..." << ENDL;
 
+
     perform_init_checks();
+
     
     this->my_thread = std::thread(&DataFileReader::worker, this);
     this->my_thread.detach();
+
     
     LOG << logger_level_t::INFO << "DataFileReader thread started." << ENDL;
 
@@ -113,8 +122,18 @@ DataFileReader::DataFileReader(const std::string &xplane_directory) : xplane_dir
 
 void DataFileReader::worker() noexcept {
 
-    parse_navaids_file();
-
+    try {
+        parse_navaids_file();
+        get_xpdata()->index_navaids_by_name();
+    } 
+    catch(const std::ifstream::failure &e) {
+        LOG << logger_level_t::ERROR << "[DataFileReader] File exception: " << e.what() << ENDL;
+        return;
+    }
+    catch(...) {
+        LOG << logger_level_t::CRIT << "[DataFileReader] Unexpected exception." << ENDL;
+        return;
+    }
     get_xpdata()->set_is_ready(true);
 }
 
@@ -123,19 +142,23 @@ void DataFileReader::worker() noexcept {
 //**************************************************************************************************
 void DataFileReader::parse_navaids_file() {
     std::ifstream ifs;
-    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    ifs.open(xplane_directory + NAV_FILE_PATH, std::ifstream::in);
+    ifs.exceptions(std::ifstream::badbit);
+    
+    std::string filename = xplane_directory + NAV_FILE_PATH;
+    LOG << logger_level_t::DEBUG << "[DataFileReader] Trying to open " << filename << "..." << ENDL;
+    ifs.open(filename, std::ifstream::in);
     
     std::string line;
     int line_no = 0;
-    while (std::getline(ifs, line)) {
-        if (line.size() > 0 and line[0] != 'I') {
+    while (!ifs.eof() && std::getline(ifs, line)) {
+        if (line.size() > 0 and line[0] != 'I' and (line[0] != '9' or line[1] != '9')) {
             parse_navaids_file_line(line_no, line);
         }
         line_no++;
     }
-    
+
     ifs.close();
+    LOG << logger_level_t::DEBUG << "[DataFileReader] Total lines read from " << filename << ": " << line_no << ENDL;
 }
 
 void DataFileReader::parse_navaids_file_line(int line_no, const std::string &line) {
@@ -157,22 +180,27 @@ void DataFileReader::parse_navaids_file_line(int line_no, const std::string &lin
         // Concatenate the navaid full name
         all_string_container.emplace_back(std::accumulate(splitted.begin()+10, splitted.end(), std::string("")));
         const char* full_name = all_string_container.back().c_str();
+        int full_name_len = all_string_container.back().size();
         
         all_string_container.push_back(splitted[7]);
         const char* icao_name = all_string_container.back().c_str();
+        int icao_name_len = all_string_container.back().size();
         
         xpdata_navaid_t navaid = {
             .id       = icao_name,
+            .id_len   = icao_name_len,
             .full_name= full_name,
+            .full_name_len = full_name_len,
             .type     = type,
             .coords   = {
-                .lat = std::stod(splitted[2]),
-                .lon = std::stod(splitted[3])
+                .lat = std::stod(splitted[1]),
+                .lon = std::stod(splitted[2])
             },
-            .altitude = std::stod(splitted[4]),
-            .frequency = std::stod(splitted[5])
+            .altitude = std::stoi(splitted[3]),
+            .frequency = std::stoi(splitted[4])
         };
     
+        xpdata->push_navaid(std::move(navaid));
     } catch(const std::invalid_argument &e) {
         LOG << logger_level_t::WARN << "[DataFileReader] earth_nav.dat:" << line_no << ": invalid parameter (failed str->int conversion)." << ENDL;
         return;
