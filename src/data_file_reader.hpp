@@ -7,7 +7,7 @@
 #include <string>
 #include <thread>
 
-namespace xpfiles {
+namespace avionicsbay {
 
 class DataFileReader {
 public:

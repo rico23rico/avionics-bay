@@ -1,4 +1,4 @@
-project(xpfiles LANGUAGES CXX DESCRIPTION "XP-FILES - X-Plane manager for data files")
+project(avionicsbay LANGUAGES CXX DESCRIPTION "Avionics Bay - X-Plane manager for data files")
 cmake_minimum_required(VERSION 3.10)
 
 
@@ -12,7 +12,7 @@ set(SOURCES api.cpp
             xpdata.cpp
             utilities/logger.cpp)
 
-add_library(xpfiles SHARED ${SOURCES})
+add_library(avionicsbay SHARED ${SOURCES})
 
 
 # Platform specific
@@ -31,5 +31,5 @@ if (APPLE)
 endif (APPLE)
 
 set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/../../64/")
-install(TARGETS xpfiles DESTINATION .)
+install(TARGETS avionicsbay DESTINATION .)
 

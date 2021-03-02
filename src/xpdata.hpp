@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace xpfiles {
+namespace avionicsbay {
 
 class XPData {
 
@@ -43,7 +43,7 @@ private:
 };
 
 
-} // namespace xpfiles
+} // namespace avionicsbay
 
 
 #endif

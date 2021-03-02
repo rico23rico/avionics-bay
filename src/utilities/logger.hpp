@@ -4,7 +4,7 @@
 #include <mutex>
 #include <string>
 
-namespace xpfiles {
+namespace avionicsbay {
 
 typedef enum class logger_level_e {
     DEBUG=0,

@@ -2,7 +2,7 @@
 
 #include "plugin.hpp"
 
-std::shared_ptr<xpfiles::XPData> xpdata;
+std::shared_ptr<avionicsbay::XPData> xpdata;
 
 xpdata_navaid_array_t build_navaid_array(std::pair<const xpdata_navaid_t* const*, size_t> std_vec) {
     struct xpdata_navaid_array_t array;
@@ -27,7 +27,7 @@ bool xpdata_is_ready(void) {
     return xpdata->get_is_ready();
 }
 
-namespace xpfiles {
+namespace avionicsbay {
     void api_init() {
         xpdata = get_xpdata();
     }

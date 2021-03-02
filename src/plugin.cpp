@@ -7,13 +7,13 @@
 #include <cassert>
 #include <cstring>
 
-#define LOG *logger << xpfiles::STARTL
+#define LOG *logger << avionicsbay::STARTL
 
-using xpfiles::Logger;
-using xpfiles::ENDL;
-using xpfiles::logger_level_t;
-using xpfiles::DataFileReader;
-using xpfiles::XPData;
+using avionicsbay::Logger;
+using avionicsbay::ENDL;
+using avionicsbay::logger_level_t;
+using avionicsbay::DataFileReader;
+using avionicsbay::XPData;
 
 static std::string fatal_error;
 static std::shared_ptr<Logger> logger;
@@ -21,7 +21,7 @@ static std::shared_ptr<XPData> xpdata;
 
 static std::shared_ptr<DataFileReader> dfr;
 
-namespace xpfiles {
+namespace avionicsbay {
     std::shared_ptr<Logger> get_logger() noexcept {
         return logger;
     }
@@ -53,15 +53,15 @@ bool initialize(const char* xplane_path) {
         return false;
     }
 
-    LOG << logger_level_t::INFO << "Initializing xpfiles..." << ENDL;
+    LOG << logger_level_t::INFO << "Initializing avionicsbay..." << ENDL;
 
     xpdata = std::make_shared<XPData>();
 
-    if (! xpfiles::init_data_file_reader(xplane_path)) {
+    if (! avionicsbay::init_data_file_reader(xplane_path)) {
         return false;
     }
 
-    xpfiles::api_init();
+    avionicsbay::api_init();
 
     LOG << logger_level_t::INFO << "Initialization complete." << ENDL;
     return true;

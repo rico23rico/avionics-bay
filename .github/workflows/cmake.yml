@@ -56,22 +56,22 @@ jobs:
     - name: Upload artifacts - Linux
       uses: actions/upload-artifact@v2
       with:
-        name: libxpfiles-linux
-        path: ${{github.workspace}}/64/libxpfiles.so
+        name: libavionicsbay-linux
+        path: ${{github.workspace}}/64/libavionicsbay.so
         if-no-files-found: ignore
       
     - name: Upload artifacts - Windows
       uses: actions/upload-artifact@v2
       with:
-        name: libxpfiles-windows
-        path: ${{github.workspace}}/64/libxpfiles.dll
+        name: libavionicsbay-windows
+        path: ${{github.workspace}}/64/libavionicsbay.dll
         if-no-files-found: ignore
         
     - name: Upload artifacts - Mac
       uses: actions/upload-artifact@v2
       with:
-        name: libxpfiles-mac
-        path: ${{github.workspace}}/64/libxpfiles.dylib
+        name: libavionicsbay-mac
+        path: ${{github.workspace}}/64/libavionicsbay.dylib
         if-no-files-found: ignore 
 
 
@@ -86,17 +86,17 @@ jobs:
       - name: Download artifact Linux
         uses: actions/download-artifact@v2
         with:
-          name: libxpfiles-linux
+          name: libavionicsbay-linux
 
       - name: Download artifact Mac
         uses: actions/download-artifact@v2
         with:
-          name: libxpfiles-mac
+          name: libavionicsbay-mac
 
       - name: Download artifact Windows
         uses: actions/download-artifact@v2
         with:
-          name: libxpfiles-windows
+          name: libavionicsbay-windows
         
       - name: Check artifacts
         shell: bash
@@ -106,7 +106,7 @@ jobs:
       - name: Zip everything
         shell: bash
         working-directory: ${{github.workspace}}
-        run: zip xpfiles.zip *.so *.dll *.dylib
+        run: zip avionicsbay.zip *.so *.dll *.dylib
 
 
       # Publish a new release
@@ -132,6 +132,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: xpfiles.zip
-          asset_name: xpfiles-binaries.zip
+          asset_path: avionicsbay.zip
+          asset_name: avionicsbay-binaries.zip
           asset_content_type: application/zip

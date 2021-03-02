@@ -16,7 +16,7 @@ extern "C" {
     EXPORT_DLL bool xpdata_is_ready(void);
 }
 
-namespace xpfiles {
+namespace avionicsbay {
     void api_init();
 }
 

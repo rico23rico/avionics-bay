@@ -21,7 +21,7 @@
 #define ARPT_FILE_PATH "Resources/default scenery/default apt dat/Earth nav data/apt.dat"
 
 
-namespace xpfiles {
+namespace avionicsbay {
 
 std::list<std::string> all_string_container;
 
@@ -225,4 +225,4 @@ void DataFileReader::parse_navaids_file_line(int line_no, const std::string &lin
     }
 }
 
-} // namespace xpfiles
+} // namespace avionicsbay

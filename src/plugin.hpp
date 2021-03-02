@@ -12,7 +12,7 @@
 
 #include <memory>
 
-namespace xpfiles {
+namespace avionicsbay {
 
     std::shared_ptr<Logger> get_logger() noexcept;
     std::shared_ptr<XPData> get_xpdata() noexcept;

@@ -1,7 +1,7 @@
 #include "xpdata.hpp"
 
 
-namespace xpfiles {
+namespace avionicsbay {
 
 void XPData::push_navaid(xpdata_navaid_t &&navaid) noexcept {
     navaids_all[navaid.type].push_back(std::move(navaid));
@@ -101,4 +101,4 @@ std::pair<const xpdata_navaid_t* const*, size_t> XPData::get_navaids_by_coords(x
     }
 }
 
-} // namespace xpfiles
+} // namespace avionicsbay

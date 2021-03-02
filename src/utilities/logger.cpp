@@ -14,7 +14,7 @@
 static std::ofstream log_file;
 static std::mutex    mx_log_file;
 
-namespace xpfiles {
+namespace avionicsbay {
 
 LoggerCloser ENDL;
 
