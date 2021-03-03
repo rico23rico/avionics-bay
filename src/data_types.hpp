@@ -19,15 +19,20 @@ typedef struct xpdata_navaid_t {
     unsigned int frequency;
 } xpdata_navaid_t;
 
+typedef struct xpdata_navaid_array_t {
+    const struct xpdata_navaid_t * const * navaids;
+    int len;
+} xpdata_navaid_array_t;
+
 typedef struct xpdata_fix_t {
     const char *id;         // e.g., ROMEO
     int id_len;
     xpdata_coords_t coords;
 } xpdata_fix_t;
 
-typedef struct xpdata_navaid_array_t {
-    const struct xpdata_navaid_t * const * navaids;
+typedef struct xpdata_fix_array_t {
+    const struct xpdata_fix_t * const * fixes;
     int len;
-} xpdata_navaid_array_t;
+} xpdata_fix_array_t;
 
 #endif // DATA_TYPES_H

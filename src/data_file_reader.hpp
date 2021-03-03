@@ -29,6 +29,9 @@ private:
     void parse_navaids_file();
     void parse_navaids_file_line(int line_no, const std::string &line);
 
+    void parse_fixes_file();
+    void parse_fixes_file_line(int line_no, const std::string &line);
+
 };
 
 }

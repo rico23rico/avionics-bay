@@ -35,10 +35,10 @@ public:
 
     std::pair<const xpdata_navaid_t* const*, size_t> get_navaids_by_freq(xpdata_navaid_type_t type, unsigned int freq) const noexcept;
 
-    std::pair<const xpdata_navaid_t* const*, size_t> get_navaids_by_coords(xpdata_navaid_type_t type, double lat, double lon, bool extended_range) const noexcept;
+    std::pair<const xpdata_navaid_t* const*, size_t> get_navaids_by_coords(xpdata_navaid_type_t type, double lat, double lon) const noexcept;
 
     std::pair<const xpdata_fix_t* const*, size_t> get_fixes_by_name(const std::string &name) const noexcept;
-    std::pair<const xpdata_fix_t* const*, size_t> get_fixes_by_coords(double lat, double lon, bool extended_range) const noexcept;
+    std::pair<const xpdata_fix_t* const*, size_t> get_fixes_by_coords(double lat, double lon) const noexcept;
 
 
 

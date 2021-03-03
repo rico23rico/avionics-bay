@@ -142,13 +142,29 @@ void DataFileReader::worker() noexcept {
         get_xpdata()->index_navaids_by_coords();
     } 
     catch(const std::ifstream::failure &e) {
-        LOG << logger_level_t::ERROR << "[DataFileReader] File exception: " << e.what() << ENDL;
+        LOG << logger_level_t::ERROR << "[DataFileReader] NAVAIDS I/O exception: " << e.what() << ENDL;
         return;
     }
     catch(...) {
-        LOG << logger_level_t::CRIT << "[DataFileReader] Unexpected exception." << ENDL;
+        LOG << logger_level_t::CRIT << "[DataFileReader] NAVAIDS Unexpected exception." << ENDL;
         return;
     }
+
+    try {
+        parse_fixes_file();
+        get_xpdata()->index_fixes_by_name();
+        get_xpdata()->index_fixes_by_coords();
+    } 
+    catch(const std::ifstream::failure &e) {
+        LOG << logger_level_t::ERROR << "[DataFileReader] FIX I/O exception: " << e.what() << ENDL;
+        return;
+    }
+    catch(...) {
+        LOG << logger_level_t::CRIT << "[DataFileReader] FIX Unexpected exception." << ENDL;
+        return;
+    }
+
+
     get_xpdata()->set_is_ready(true);
 }
 
@@ -160,20 +176,20 @@ void DataFileReader::parse_navaids_file() {
     ifs.exceptions(std::ifstream::badbit);
     
     std::string filename = xplane_directory + NAV_FILE_PATH;
-    LOG << logger_level_t::DEBUG << "[DataFileReader] Trying to open " << filename << "..." << ENDL;
+    LOG << logger_level_t::INFO << "[DataFileReader] Trying to open " << filename << "..." << ENDL;
     ifs.open(filename, std::ifstream::in);
     
     std::string line;
     int line_no = 0;
     while (!ifs.eof() && std::getline(ifs, line)) {
-        if (line.size() > 0 and line[0] != 'I' and (line[0] != '9' or line[1] != '9')) {
+        if (line.size() > 0 and line[0] != 'I' and (line[0] != '9' or line[1] != '9') and (line_no > 1)) {
             parse_navaids_file_line(line_no, line);
         }
         line_no++;
     }
 
     ifs.close();
-    LOG << logger_level_t::DEBUG << "[DataFileReader] Total lines read from " << filename << ": " << line_no << ENDL;
+    LOG << logger_level_t::INFO << "[DataFileReader] Total lines read from " << filename << ": " << line_no << ENDL;
 }
 
 void DataFileReader::parse_navaids_file_line(int line_no, const std::string &line) {
@@ -224,5 +240,66 @@ void DataFileReader::parse_navaids_file_line(int line_no, const std::string &lin
         return;
     }
 }
+
+//**************************************************************************************************
+// WORKER functions - FIXES
+//**************************************************************************************************
+void DataFileReader::parse_fixes_file() {
+    std::ifstream ifs;
+    ifs.exceptions(std::ifstream::badbit);
+    
+    std::string filename = xplane_directory + FIX_FILE_PATH;
+    LOG << logger_level_t::INFO << "[DataFileReader] Trying to open " << filename << "..." << ENDL;
+    ifs.open(filename, std::ifstream::in);
+    
+    std::string line;
+    int line_no = 0;
+    while (!ifs.eof() && std::getline(ifs, line)) {
+        if (line.size() > 0 and line[0] != 'I' and (line[0] != '9' or line[1] != '9')) {
+            parse_fixes_file_line(line_no, line);
+        }
+        line_no++;
+    }
+
+    ifs.close();
+    LOG << logger_level_t::INFO << "[DataFileReader] Total lines read from " << filename << ": " << line_no << ENDL;
+}
+
+
+void DataFileReader::parse_fixes_file_line(int line_no, const std::string &line) {
+    auto splitted = str_explode(line, ' ');
+    
+    if (splitted.size() != 6) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_fix.dat:" << line_no << ": invalid nr. parameters." << ENDL;
+        return;     // Something invalid here
+    }
+    
+    try {
+
+        // Concatenate the navaid full name
+        
+        all_string_container.push_back(splitted[2]);
+        const char* fix_name = all_string_container.back().c_str();
+        int fix_name_len = all_string_container.back().size();
+        
+        xpdata_fix_t fix = {
+            .id       = fix_name,
+            .id_len   = fix_name_len,
+            .coords   = {
+                .lat = std::stod(splitted[0]),
+                .lon = std::stod(splitted[1])
+            },
+        };
+    
+        xpdata->push_fix(std::move(fix));
+    } catch(const std::invalid_argument &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_fix.dat:" << line_no << ": invalid parameter (failed str->int conversion)." << ENDL;
+        return;
+    } catch(const std::out_of_range &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_fix.dat:" << line_no << ": invalid parameter (out-of-range str->int conversion)." << ENDL;
+        return;
+    }
+}
+
 
 } // namespace avionicsbay

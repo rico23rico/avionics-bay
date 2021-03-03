@@ -86,7 +86,7 @@ std::pair<const xpdata_navaid_t* const*, size_t> XPData::get_navaids_by_freq(xpd
     }
 }
 
-std::pair<const xpdata_navaid_t* const*, size_t> XPData::get_navaids_by_coords(xpdata_navaid_type_t type, double d_lat, double d_lon, bool extended_range) const noexcept {
+std::pair<const xpdata_navaid_t* const*, size_t> XPData::get_navaids_by_coords(xpdata_navaid_type_t type, double d_lat, double d_lon) const noexcept {
 
     int lat = static_cast<int>(d_lat);
     int lon = static_cast<int>(d_lon);
@@ -129,7 +129,7 @@ void XPData::index_fixes_by_name() noexcept {
 
 void XPData::index_fixes_by_coords() noexcept {
 
-    for(int i=0; i < fixes_coords.size(); i++) {
+    for(int i=0; i < fixes_all.size(); i++) {
 
         auto element_ptr = &fixes_all[i];
     
@@ -159,7 +159,7 @@ std::pair<const xpdata_fix_t* const*, size_t> XPData::get_fixes_by_name(const st
     }
 }
 
-std::pair<const xpdata_fix_t* const*, size_t> XPData::get_fixes_by_coords(double d_lat, double d_lon, bool extended_range) const noexcept {
+std::pair<const xpdata_fix_t* const*, size_t> XPData::get_fixes_by_coords(double d_lat, double d_lon) const noexcept {
 
     int lat = static_cast<int>(d_lat);
     int lon = static_cast<int>(d_lon);
