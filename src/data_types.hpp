@@ -19,6 +19,12 @@ typedef struct xpdata_navaid_t {
     unsigned int frequency;
 } xpdata_navaid_t;
 
+typedef struct xpdata_fix_t {
+    const char *id;         // e.g., ROMEO
+    int id_len;
+    xpdata_coords_t coords;
+} xpdata_fix_t;
+
 typedef struct xpdata_navaid_array_t {
     const struct xpdata_navaid_t * const * navaids;
     int len;
