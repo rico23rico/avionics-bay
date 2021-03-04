@@ -4,6 +4,10 @@
 
 std::shared_ptr<avionicsbay::XPData> xpdata;
 
+/**************************************************************************************************/
+/** Helpers functions **/
+/**************************************************************************************************/
+
 static xpdata_navaid_array_t build_navaid_array(std::pair<const xpdata_navaid_t* const*, size_t> std_vec) {
     xpdata_navaid_array_t array;
     array.navaids = std_vec.first;
@@ -18,7 +22,16 @@ static xpdata_fix_array_t build_fix_array(std::pair<const xpdata_fix_t* const*, 
     return array;
 }
 
+static xpdata_apt_array_t build_apt_array(std::pair<const xpdata_apt_t* const*, size_t> std_vec) {
+    xpdata_apt_array_t array;
+    array.apts = std_vec.first;
+    array.len = std_vec.second;
+    return array;
+}
 
+/**************************************************************************************************/
+/** NAVAIDS **/
+/**************************************************************************************************/
 EXPORT_DLL xpdata_navaid_array_t get_navaid_by_name(xpdata_navaid_type_t type, const char* name) {
     return build_navaid_array(xpdata->get_navaids_by_name(type, name));
 }
@@ -31,6 +44,9 @@ EXPORT_DLL xpdata_navaid_array_t get_navaid_by_coords(xpdata_navaid_type_t type,
     return build_navaid_array(xpdata->get_navaids_by_coords(type, lat, lon));
 }
 
+/**************************************************************************************************/
+/** FIXES **/
+/**************************************************************************************************/
 EXPORT_DLL xpdata_fix_array_t get_fixes_by_name(const char* name) {
     return build_fix_array(xpdata->get_fixes_by_name(name));
 }
@@ -38,6 +54,21 @@ EXPORT_DLL xpdata_fix_array_t get_fixes_by_name(const char* name) {
 EXPORT_DLL xpdata_fix_array_t get_fixes_by_coords(double lat, double lon) {
     return build_fix_array(xpdata->get_fixes_by_coords(lat, lon));
 }
+
+/**************************************************************************************************/
+/** ARPTS **/
+/**************************************************************************************************/
+EXPORT_DLL xpdata_apt_array_t get_apts_by_name(const char* name) {
+    return build_apt_array(xpdata->get_apts_by_name(name));
+}
+
+EXPORT_DLL xpdata_apt_array_t get_apts_by_coords(double lat, double lon) {
+    return build_apt_array(xpdata->get_apts_by_coords(lat, lon));
+}
+
+/**************************************************************************************************/
+/** MISc **/
+/**************************************************************************************************/
 
 bool xpdata_is_ready(void) {
     return xpdata->get_is_ready();

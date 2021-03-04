@@ -224,8 +224,7 @@ void XPData::index_apts_by_coords() noexcept {
 
         auto element_ptr = &apts_all[i];
     
-        int nr_rwys = apts_rwy_all.count(element_ptr->pos_seek);
-        if (nr_rwys == 0) {
+        if (apts_rwy_all.count(element_ptr->pos_seek) == 0) {
             // An airport with no runways?
             continue;
         }
@@ -233,8 +232,10 @@ void XPData::index_apts_by_coords() noexcept {
         // Let's compute the airport center coordinates as a centroid of all the middle points
         // of the runways
         double d_lat=0, d_lon=0;
-        for (int i=0; i < nr_rwys; i++) {
-            auto curr_runway = apts_rwy_all.at(element_ptr->pos_seek)[1];
+        const auto & rwys_vector = apts_rwy_all.at(element_ptr->pos_seek);
+        int nr_rwys = rwys_vector.size();
+        for (int i=0; i < rwys_vector.size(); i++) {
+            auto curr_runway = rwys_vector[i];
             d_lat += (curr_runway.coords.lat + curr_runway.sibl_coords.lat)/2;
             d_lon += (curr_runway.coords.lon + curr_runway.sibl_coords.lon)/2;
         }
@@ -243,6 +244,8 @@ void XPData::index_apts_by_coords() noexcept {
 
         element_ptr->apt_center.lat = d_lat;
         element_ptr->apt_center.lon = d_lon;
+        element_ptr->rwys = rwys_vector.data();
+        element_ptr->rwys_len = rwys_vector.size();
 
         int lat = static_cast<int>(d_lat);
         int lon = static_cast<int>(d_lon);
@@ -258,6 +261,31 @@ void XPData::index_apts_by_coords() noexcept {
             apts_coords[lat_lon_pair].push_back(element_ptr);
         }
 
+    }
+}
+
+std::pair<const xpdata_apt_t* const*, size_t> XPData::get_apts_by_name(const std::string &name) const noexcept {
+    try {
+        const auto & element = this->apts_name.at(name);
+        return std::pair<const xpdata_apt_t* const*, size_t> (element.data(), element.size());
+    } catch(...) {
+        return std::pair<const xpdata_apt_t* const*, size_t> (nullptr, 0);
+    }
+}
+std::pair<const xpdata_apt_t* const*, size_t> XPData::get_apts_by_coords(double d_lat, double d_lon) const noexcept {
+    int lat = static_cast<int>(d_lat);
+    int lon = static_cast<int>(d_lon);
+
+    lat = lat - (lat % 4);
+    lon = lon - (lon % 4);
+    
+    auto ctr_pair = std::pair<int, int> (lat, lon);
+
+    try {
+        const auto & element = this->apts_coords.at(ctr_pair);
+        return std::pair<const xpdata_apt_t* const*, size_t> (element.data(), element.size());
+    } catch(...) {
+        return std::pair<const xpdata_apt_t* const*, size_t> (nullptr, 0);
     }
 }
 

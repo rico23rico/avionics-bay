@@ -17,6 +17,9 @@ extern "C" {
     EXPORT_DLL xpdata_fix_array_t get_fixes_by_name  (const char*);
     EXPORT_DLL xpdata_fix_array_t get_fixes_by_coords(double, double);
 
+    EXPORT_DLL xpdata_apt_array_t get_apts_by_name  (const char*);
+    EXPORT_DLL xpdata_apt_array_t get_apts_by_coords(double, double);
+
     EXPORT_DLL bool xpdata_is_ready(void);
 }
 

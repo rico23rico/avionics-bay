@@ -60,7 +60,8 @@ public:
     void index_apts_by_name() noexcept;
     void index_apts_by_coords() noexcept;
 
-
+    std::pair<const xpdata_apt_t* const*, size_t> get_apts_by_name(const std::string &name) const noexcept;
+    std::pair<const xpdata_apt_t* const*, size_t> get_apts_by_coords(double lat, double lon) const noexcept;
 
 private:
     std::shared_ptr<Logger> logger;

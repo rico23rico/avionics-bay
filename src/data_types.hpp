@@ -61,7 +61,7 @@ typedef struct xpdata_apt_t {
     
     int altitude;
 
-    xpdata_apt_rwy_t *rwys;
+    const xpdata_apt_rwy_t *rwys;
     int rwys_len;
     
     xpdata_coords_t apt_center;
@@ -69,5 +69,11 @@ typedef struct xpdata_apt_t {
     long pos_seek;   // For internal use only, do not modify this value
     
 } xpdata_apt_t;
+
+typedef struct xpdata_apt_array_t {
+    const struct xpdata_apt_t * const * apts;
+    int len;
+} xpdata_apt_array_t;
+
 
 #endif // DATA_TYPES_H
