@@ -18,7 +18,7 @@
 
 #define NAV_FILE_PATH  "Resources/default data/earth_nav.dat"
 #define FIX_FILE_PATH  "Resources/default data/earth_fix.dat"
-#define ARPT_FILE_PATH "Resources/default scenery/default apt dat/Earth nav data/apt.dat"
+#define APT_FILE_PATH "Resources/default scenery/default apt dat/Earth nav data/apt.dat"
 
 
 namespace avionicsbay {
@@ -101,7 +101,7 @@ void DataFileReader::perform_init_checks() {
         throw std::runtime_error("File " + filename + " is not accessible.");
     }
 
-    filename = xplane_directory + "/" + ARPT_FILE_PATH;
+    filename = xplane_directory + "/" + APT_FILE_PATH;
     if (!is_a_file(filename)) {
         throw std::runtime_error("File " + filename + " is not accessible.");
     }
@@ -164,6 +164,19 @@ void DataFileReader::worker() noexcept {
         return;
     }
 
+    try {
+        parse_apts_file();
+        get_xpdata()->index_apts_by_name();
+        get_xpdata()->index_apts_by_coords();
+    } 
+    catch(const std::ifstream::failure &e) {
+        LOG << logger_level_t::ERROR << "[DataFileReader] APT I/O exception: " << e.what() << ENDL;
+        return;
+    }
+    catch(...) {
+        LOG << logger_level_t::CRIT << "[DataFileReader] APT Unexpected exception." << ENDL;
+        return;
+    }
 
     get_xpdata()->set_is_ready(true);
 }
@@ -241,6 +254,7 @@ void DataFileReader::parse_navaids_file_line(int line_no, const std::string &lin
     }
 }
 
+
 //**************************************************************************************************
 // WORKER functions - FIXES
 //**************************************************************************************************
@@ -275,8 +289,6 @@ void DataFileReader::parse_fixes_file_line(int line_no, const std::string &line)
     }
     
     try {
-
-        // Concatenate the navaid full name
         
         all_string_container.push_back(splitted[2]);
         const char* fix_name = all_string_container.back().c_str();
@@ -301,5 +313,136 @@ void DataFileReader::parse_fixes_file_line(int line_no, const std::string &line)
     }
 }
 
+//**************************************************************************************************
+// WORKER functions - APTs
+//**************************************************************************************************
+void DataFileReader::parse_apts_file() {
+    std::ifstream ifs;
+    ifs.exceptions(std::ifstream::badbit);
+    
+    std::string filename = xplane_directory + APT_FILE_PATH;
+    LOG << logger_level_t::INFO << "[DataFileReader] Trying to open " << filename << "..." << ENDL;
+    ifs.open(filename, std::ifstream::in);
+    
+    std::string line;
+    int line_no = 0;
+    ssize_t cur_seek = 0;
+    while (!ifs.eof() && std::getline(ifs, line)) {
+        if (line.size() > 0 and line[0] != 'I' and (line[0] != '9' or line[1] != '9')) {
+            parse_apts_file_line(line_no, cur_seek, line);
+        }
+        line_no++;
+        cur_seek = ifs.tellg();
+    }
+
+    ifs.close();
+    LOG << logger_level_t::INFO << "[DataFileReader] Total lines read from " << filename << ": " << line_no << ENDL;
+}
+
+void DataFileReader::parse_apts_file_line(int line_no, ssize_t seek_pos, const std::string &line) {
+    auto splitted = str_explode(line, ' ');
+    if (splitted.size() < 1) {
+        return;     // Empty line
+    }
+    if (splitted[0] == "1") {
+        parse_apts_file_header(line_no, seek_pos, splitted);
+    }
+    else if (splitted[0] == "100") {
+        parse_apts_file_runway(line_no, splitted);
+    }
+    
+}
+
+void DataFileReader::parse_apts_file_header(int line_no, ssize_t seek_pos, const std::vector<std::string> &splitted) {
+
+    if (splitted.size() < 6) {
+        LOG << logger_level_t::WARN << "[DataFileReader] apt.dat:" << line_no << ": invalid nr. parameters (airport)." << ENDL;
+        return;     // Invalid airport
+    }
+
+    try {
+        all_string_container.emplace_back(str_implode(splitted.begin()+5, splitted.end(), " "));
+        const char* full_name = all_string_container.back().c_str();
+        int full_name_len = all_string_container.back().size();
+
+        all_string_container.push_back(splitted[4]);
+        const char* icao_name = all_string_container.back().c_str();
+        int icao_name_len = all_string_container.back().size();
+        
+        int altitude = std::stoi(splitted[1]);
+
+        xpdata_apt_t apt = {
+            .id       = icao_name,
+            .id_len   = icao_name_len,
+            .full_name= full_name,
+            .full_name_len = full_name_len,
+            .altitude = std::stoi(splitted[1]),
+            .rwys = nullptr,
+            .rwys_len = 0,
+            .pos_seek = seek_pos
+        };
+
+        xpdata->push_apt(std::move(apt));
+        
+    } catch(const std::invalid_argument &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] apt.dat:" << line_no << ": invalid parameter (failed str->int conversion)." << ENDL;
+        return;
+    } catch(const std::out_of_range &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] apt.dat:" << line_no << ": invalid parameter (out-of-range str->int conversion)." << ENDL;
+        return;
+    }
+
+}
+void DataFileReader::parse_apts_file_runway(int line_no, const std::vector<std::string> &splitted) {
+    if (splitted.size() < 22) {
+        LOG << logger_level_t::WARN << "[DataFileReader] apt.dat:" << line_no << ": invalid nr. parameters (runway)." << ENDL;
+        return;     // Something invalid here
+    }
+    
+    try {
+        int rwy_surface = std::stoi(splitted[2]);
+        if (rwy_surface != 1 && rwy_surface != 2 && rwy_surface != 14 && rwy_surface != 15) {
+            return; // Not asphalt, Not concrete, Not snow, Not transparent (custom scenery)
+        }
+        
+        int name_len = splitted[8].size();
+        int s_name_len = splitted[17].size();
+        
+        xpdata_apt_rwy_t rwy = {
+            .name= {splitted[8][0], 
+                    name_len > 1 ? splitted[8][1] : '\0',
+                    name_len > 2 ? splitted[8][2] : '\0',
+                    '\0'
+                   },
+            .sibl_name = { splitted[17][0], 
+                           s_name_len > 1 ? splitted[17][1] : '\0',
+                           s_name_len > 2 ? splitted[17][2] : '\0',
+                           '\0'
+                         },
+
+            .coords   = {
+                .lat = std::stod(splitted[9]),
+                .lon = std::stod(splitted[10])
+            },
+            .sibl_coords = {
+                .lat = std::stod(splitted[18]),
+                .lon = std::stod(splitted[19])
+            },
+            
+            .width = std::stod(splitted[1]),
+            .surface_type = rwy_surface,
+            .has_ctr_lights = splitted[5] == "1"
+        };
+        
+        xpdata->push_apt_rwy(std::move(rwy));
+    } catch(const std::invalid_argument &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] apt.dat:" << line_no << ": invalid parameter (failed str->int conversion)." << ENDL;
+        return;
+    } catch(const std::out_of_range &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] apt.dat:" << line_no << ": invalid parameter (out-of-range str->int conversion)." << ENDL;
+        return;
+    }
+    
+}
 
 } // namespace avionicsbay

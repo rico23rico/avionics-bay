@@ -8,6 +8,7 @@ typedef struct xpdata_coords_t {
     double lon;
 } xpdata_coords_t;
 
+/******************************* NAVAIDS *******************************/
 typedef struct xpdata_navaid_t {
     const char *id;         // e.g., SRN
     int id_len;
@@ -24,6 +25,7 @@ typedef struct xpdata_navaid_array_t {
     int len;
 } xpdata_navaid_array_t;
 
+/******************************* FIXES *******************************/
 typedef struct xpdata_fix_t {
     const char *id;         // e.g., ROMEO
     int id_len;
@@ -34,5 +36,38 @@ typedef struct xpdata_fix_array_t {
     const struct xpdata_fix_t * const * fixes;
     int len;
 } xpdata_fix_array_t;
+
+/******************************* ARPT *******************************/
+
+typedef struct xpdata_apt_rwy_t {
+    char name[4];
+    char sibl_name[4];              // On the other head of the runway
+
+    xpdata_coords_t coords;
+    xpdata_coords_t sibl_coords;    // On the other head of the runway
+    
+    double width;
+    int surface_type;
+    bool has_ctr_lights;
+    
+} xpdata_apt_rwy_t;
+
+typedef struct xpdata_apt_t {
+    const char *id;         // e.g., LIRF
+    int id_len;
+    
+    const char *full_name;  // e.g., Roma Fiumicino
+    int full_name_len;
+    
+    int altitude;
+
+    xpdata_apt_rwy_t *rwys;
+    int rwys_len;
+    
+    xpdata_coords_t apt_center;
+    
+    long pos_seek;   // For internal use only, do not modify this value
+    
+} xpdata_apt_t;
 
 #endif // DATA_TYPES_H

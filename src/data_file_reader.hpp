@@ -32,6 +32,10 @@ private:
     void parse_fixes_file();
     void parse_fixes_file_line(int line_no, const std::string &line);
 
+    void parse_apts_file();
+    void parse_apts_file_line(int line_no, ssize_t seek_pos, const std::string &line);
+    void parse_apts_file_header(int line_no, ssize_t seek_pos, const std::vector<std::string> &splitted);
+    void parse_apts_file_runway(int line_no, const std::vector<std::string> &splitted);
 };
 
 }
