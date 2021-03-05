@@ -20,6 +20,9 @@ extern "C" {
     EXPORT_DLL xpdata_apt_array_t get_apts_by_name  (const char*);
     EXPORT_DLL xpdata_apt_array_t get_apts_by_coords(double, double);
 
+    EXPORT_DLL const xpdata_apt_t* get_nearest_apt();
+    EXPORT_DLL void set_acf_coords(double lat, double lon);
+
     EXPORT_DLL bool xpdata_is_ready(void);
 }
 

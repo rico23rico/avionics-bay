@@ -16,6 +16,9 @@ namespace avionicsbay {
 
     std::shared_ptr<Logger> get_logger() noexcept;
     std::shared_ptr<XPData> get_xpdata() noexcept;
+    
+    void set_acf_cur_pos(double lat, double lon) noexcept;
+    std::pair<double, double> get_acf_cur_pos() noexcept;
 }
 extern "C" {
     EXPORT_DLL bool initialize(const char* xplane_path);

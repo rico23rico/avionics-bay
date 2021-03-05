@@ -1,10 +1,30 @@
 #include "xpdata.hpp"
 
+#include <cmath>
+
 #define LOG *this->logger << STARTL
+
+#define DEG_TO_RAD(x) (x*M_PI/180.)
+#define RAD_TO_DEG(x) (x*180./M_PI)
+
+static_assert(5 == DEG_TO_RAD(RAD_TO_DEG(5)));
+static_assert(0 == DEG_TO_RAD(0));
+static_assert(M_PI == DEG_TO_RAD(180));
 
 namespace avionicsbay {
 
 static int last_navaid_type = 0;
+
+static constexpr double GC_distance_km(double lat1, double lon1, double lat2, double lon2) {
+    //This function returns great circle distance between 2 points.
+    //Found here: http://bluemm.blogspot.gr/2007/01/excel-formula-to-calculate-distance.html
+
+    double distance = acos(cos(DEG_TO_RAD(90.-lat1))*cos(DEG_TO_RAD(90.-lat2))+
+                      sin(DEG_TO_RAD(90.-lat1))*sin(DEG_TO_RAD(90.-lat2))*cos(DEG_TO_RAD(lon1-lon2)))
+                      * (6378000./1000.);
+
+    return distance;
+}
 
 /**************************************************************************************************/
 /** NAVAIDS **/
@@ -294,6 +314,29 @@ std::pair<const xpdata_apt_t* const*, size_t> XPData::get_apts_by_coords(double 
     } catch(...) {
         return std::pair<const xpdata_apt_t* const*, size_t> (nullptr, 0);
     }
+}
+
+
+void XPData::update_nearest_airport() noexcept {
+
+    auto acf_coords = get_acf_cur_pos();
+    auto arpts = get_apts_by_coords(acf_coords.first, acf_coords.second);
+    
+    double min_distance = 99999999.;
+    const xpdata_apt_t *min_arpt = nullptr;
+    
+    for (int i=0; i < arpts.second; i++) {
+        double distance = GC_distance_km(arpts.first[i]->apt_center.lat, arpts.first[i]->apt_center.lon, acf_coords.first, acf_coords.second);
+        
+        if (distance < min_distance) {
+            min_arpt = arpts.first[i];
+            min_distance = distance;
+        }
+    }
+    
+    std::lock_guard<std::mutex> lk(mx_nearest_airport);
+    this->nearest_airport = min_arpt;
+    
 }
 
 } // namespace avionicsbay

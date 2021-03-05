@@ -5,6 +5,7 @@
 #include "plugin.hpp"
 
 #include <cassert>
+#include <chrono>
 #include <fstream>
 #include <list>
 #include <sstream>
@@ -20,6 +21,7 @@
 #define FIX_FILE_PATH  "Resources/default data/earth_fix.dat"
 #define APT_FILE_PATH "Resources/default scenery/default apt dat/Earth nav data/apt.dat"
 
+#define NEAREST_APT_UPDATE_SEC 2
 
 namespace avionicsbay {
 
@@ -182,9 +184,10 @@ void DataFileReader::worker() noexcept {
 
     LOG << logger_level_t::INFO << "[DataFileReader] Data Ready." << ENDL;
 
-/*    while(true) {
-    
-    }*/
+    while(true) {
+        get_xpdata()->update_nearest_airport();
+        std::this_thread::sleep_for(std::chrono::seconds(NEAREST_APT_UPDATE_SEC));
+    }
 
 }
 

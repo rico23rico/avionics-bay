@@ -66,11 +66,19 @@ EXPORT_DLL xpdata_apt_array_t get_apts_by_coords(double lat, double lon) {
     return build_apt_array(xpdata->get_apts_by_coords(lat, lon));
 }
 
+EXPORT_DLL const xpdata_apt_t* get_nearest_apt() {
+    return xpdata->get_nearest_airport();
+}
+
 /**************************************************************************************************/
 /** MISc **/
 /**************************************************************************************************/
 
-bool xpdata_is_ready(void) {
+EXPORT_DLL void set_acf_coords(double lat, double lon) {
+    avionicsbay::set_acf_cur_pos(lat, lon); 
+}
+
+EXPORT_DLL bool xpdata_is_ready(void) {
     return xpdata->get_is_ready();
 }
 

@@ -4,6 +4,8 @@
 #include "utilities/logger.hpp"
 #include "xpdata.hpp"
 
+#include <condition_variable>
+#include <mutex>
 #include <string>
 #include <thread>
 
@@ -36,6 +38,10 @@ private:
     void parse_apts_file_line(int line_no, ssize_t seek_pos, const std::string &line);
     void parse_apts_file_header(int line_no, ssize_t seek_pos, const std::vector<std::string> &splitted);
     void parse_apts_file_runway(int line_no, const std::vector<std::string> &splitted);
+
+    std::mutex mx_apt_details;
+    std::condition_variable cv_apt_details;
+
 };
 
 }

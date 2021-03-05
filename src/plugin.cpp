@@ -6,6 +6,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <mutex>
 
 #define LOG *logger << avionicsbay::STARTL
 
@@ -21,6 +22,9 @@ static std::shared_ptr<XPData> xpdata;
 
 static std::shared_ptr<DataFileReader> dfr;
 
+static double acf_lat, acf_lon;
+static std::mutex mx_acf_lat_lon;
+
 namespace avionicsbay {
     std::shared_ptr<Logger> get_logger() noexcept {
         return logger;
@@ -29,7 +33,17 @@ namespace avionicsbay {
     std::shared_ptr<XPData> get_xpdata() noexcept {
         return xpdata;
     }
-    
+
+    void set_acf_cur_pos(double lat, double lon) noexcept {
+        std::lock_guard<std::mutex> lk(mx_acf_lat_lon);
+        acf_lat = lat;
+        acf_lon = lon;
+    }
+    std::pair<double, double> get_acf_cur_pos() noexcept {
+        std::lock_guard<std::mutex> lk(mx_acf_lat_lon);
+        return std::make_pair(acf_lat, acf_lon);
+    }
+
     bool init_data_file_reader(const char* xplane_path) {
         try {
             dfr = std::make_shared<DataFileReader>(xplane_path);

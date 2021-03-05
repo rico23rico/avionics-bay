@@ -8,6 +8,7 @@
 #include <atomic>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -15,6 +16,7 @@
 namespace avionicsbay {
 
 extern std::shared_ptr<Logger> get_logger() noexcept;
+extern std::pair<double, double> get_acf_cur_pos() noexcept;
 
 class XPData {
 
@@ -64,9 +66,18 @@ public:
     std::pair<const xpdata_apt_t* const*, size_t> get_apts_by_name(const std::string &name) const noexcept;
     std::pair<const xpdata_apt_t* const*, size_t> get_apts_by_coords(double lat, double lon) const noexcept;
 
+    void update_nearest_airport() noexcept;
+    const xpdata_apt_t* get_nearest_airport() noexcept {
+        std::lock_guard<std::mutex> lk(mx_nearest_airport);
+        return this->nearest_airport;
+    }
+
 private:
     std::shared_ptr<Logger> logger;
     std::atomic<bool> is_ready;
+    
+    const xpdata_apt_t *nearest_airport = nullptr; // can be nullptr at any time
+    std::mutex mx_nearest_airport;
 
 /**************************************************************************************************/
 /** NAVAIDS **/
@@ -91,6 +102,7 @@ private:
                                                                           // file as index: it's for sure unique
     std::unordered_map<std::string, std::vector<xpdata_apt_t*>> apts_name;
     std::map<std::pair<int, int>, std::vector<xpdata_apt_t*>> apts_coords;
+
 };
 
 
