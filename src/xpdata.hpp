@@ -34,6 +34,7 @@ public:
 /** NAVAIDS **/
 /**************************************************************************************************/
     void push_navaid(xpdata_navaid_t &&navaid) noexcept;
+    void flag_navaid_coupled() noexcept;
     void index_navaids_by_name() noexcept;
     void index_navaids_by_freq() noexcept;
     void index_navaids_by_coords() noexcept;

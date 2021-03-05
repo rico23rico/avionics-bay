@@ -179,6 +179,13 @@ void DataFileReader::worker() noexcept {
     }
 
     get_xpdata()->set_is_ready(true);
+
+    LOG << logger_level_t::INFO << "[DataFileReader] Data Ready." << ENDL;
+
+/*    while(true) {
+    
+    }*/
+
 }
 
 //**************************************************************************************************
@@ -241,9 +248,15 @@ void DataFileReader::parse_navaids_file_line(int line_no, const std::string &lin
                 .lon = std::stod(splitted[2])
             },
             .altitude = std::stoi(splitted[3]),
-            .frequency = static_cast<unsigned>(std::stoi(splitted[4]))
+            .frequency = static_cast<unsigned>(std::stoi(splitted[4])),
+            .is_coupled_dme = false
         };
-    
+        
+        if (type == NAV_ID_DME) {
+            // In this case we set the flag on the prevous loaded VOR that the DME is coupled
+            xpdata->flag_navaid_coupled();
+        }
+        
         xpdata->push_navaid(std::move(navaid));
     } catch(const std::invalid_argument &e) {
         LOG << logger_level_t::WARN << "[DataFileReader] earth_nav.dat:" << line_no << ": invalid parameter (failed str->int conversion)." << ENDL;

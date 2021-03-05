@@ -4,11 +4,18 @@
 
 namespace avionicsbay {
 
+static int last_navaid_type = 0;
+
 /**************************************************************************************************/
 /** NAVAIDS **/
 /**************************************************************************************************/
 void XPData::push_navaid(xpdata_navaid_t &&navaid) noexcept {
+    last_navaid_type = navaid.type;
     navaids_all[navaid.type].push_back(std::move(navaid));
+}
+
+void XPData::flag_navaid_coupled() noexcept {
+    navaids_all[last_navaid_type].back().is_coupled_dme = true;
 }
 
 void XPData::index_navaids_by_name() noexcept {

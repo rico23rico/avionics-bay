@@ -18,6 +18,7 @@ typedef struct xpdata_navaid_t {
     xpdata_coords_t coords;
     int altitude;
     unsigned int frequency;
+    bool is_coupled_dme;    // True if the vor is coupled with DME
 } xpdata_navaid_t;
 
 typedef struct xpdata_navaid_array_t {
