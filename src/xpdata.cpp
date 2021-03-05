@@ -15,7 +15,7 @@ namespace avionicsbay {
 
 static int last_navaid_type = 0;
 
-static constexpr double GC_distance_km(double lat1, double lon1, double lat2, double lon2) {
+static double GC_distance_km(double lat1, double lon1, double lat2, double lon2) {
     //This function returns great circle distance between 2 points.
     //Found here: http://bluemm.blogspot.gr/2007/01/excel-formula-to-calculate-distance.html
 
