@@ -15,10 +15,24 @@ class DataFileReader {
 public:
 
     DataFileReader(const std::string & xplane_directory);
+    virtual ~DataFileReader() {
+        this->worker_stop();   // This is too late, but better than nothing
+        this->my_thread.join();
+    }
 
     void worker() noexcept;
+    void worker_stop() noexcept {
+        this->stop = true;
+        cv_apt_details.notify_one();
+    }
+    
+    bool is_worker_running() {
+        return this->running;
+    }
 
 private:
+    std::atomic<bool> stop;
+    std::atomic<bool> running;
     std::shared_ptr<Logger> logger;
     std::shared_ptr<XPData> xpdata;
     std::string xplane_directory;

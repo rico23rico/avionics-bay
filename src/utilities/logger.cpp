@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <mutex>
 #include <sstream>
 #include <string>
@@ -92,7 +93,11 @@ void Logger::save_log(logger_level_t level, const std::string &message) noexcept
 
         {
             std::lock_guard<std::mutex> lk(mx_log_file);
-            log_file << full_message << std::endl;
+            try {
+                log_file << full_message << std::endl;
+            } catch(...) {
+                std::cout << "AB-LOG-FALLBACK - " << full_message << std::endl;
+            }
         }
     }
     curr_msg = "";

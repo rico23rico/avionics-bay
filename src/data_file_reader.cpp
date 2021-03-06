@@ -110,7 +110,7 @@ void DataFileReader::perform_init_checks() {
 
 }
 
-DataFileReader::DataFileReader(const std::string &xplane_directory) : xplane_directory(xplane_directory) {
+DataFileReader::DataFileReader(const std::string &xplane_directory) : stop(false), xplane_directory(xplane_directory) {
     this->logger = get_logger();
     this->xpdata = get_xpdata();
     
@@ -123,8 +123,6 @@ DataFileReader::DataFileReader(const std::string &xplane_directory) : xplane_dir
 
     
     this->my_thread = std::thread(&DataFileReader::worker, this);
-    this->my_thread.detach();
-
     
     LOG << logger_level_t::INFO << "DataFileReader thread started." << ENDL;
 
@@ -136,6 +134,12 @@ DataFileReader::DataFileReader(const std::string &xplane_directory) : xplane_dir
 
 
 void DataFileReader::worker() noexcept {
+
+    this->running = true;
+
+#if defined(__linux__)
+    pthread_setname_np(pthread_self(), "avionicsbay_DataFileReader");   // For debugging purposes
+#endif
 
     try {
         parse_navaids_file();
@@ -184,10 +188,18 @@ void DataFileReader::worker() noexcept {
 
     LOG << logger_level_t::INFO << "[DataFileReader] Data Ready." << ENDL;
 
-    while(true) {
-        get_xpdata()->update_nearest_airport();
-        std::this_thread::sleep_for(std::chrono::seconds(NEAREST_APT_UPDATE_SEC));
+    while(!this->stop) {
+        get_xpdata()->update_nearest_airport(); // No need synchronization for this
+
+        std::unique_lock<std::mutex> lk(mx_apt_details);
+        cv_apt_details.wait_for(lk, std::chrono::seconds(NEAREST_APT_UPDATE_SEC));
+        
+        // TODO: Check if we need to update the OANS
     }
+    
+    LOG << logger_level_t::INFO << "[DataFileReader] Thread shutting down..." << ENDL;
+
+    this->running = false;
 
 }
 
@@ -204,7 +216,7 @@ void DataFileReader::parse_navaids_file() {
     
     std::string line;
     int line_no = 0;
-    while (!ifs.eof() && std::getline(ifs, line)) {
+    while (!ifs.eof() && std::getline(ifs, line) && !this->stop) {
         if (line.size() > 0 and line[0] != 'I' and (line[0] != '9' or line[1] != '9') and (line_no > 1)) {
             parse_navaids_file_line(line_no, line);
         }
@@ -284,7 +296,7 @@ void DataFileReader::parse_fixes_file() {
     
     std::string line;
     int line_no = 0;
-    while (!ifs.eof() && std::getline(ifs, line)) {
+    while (!ifs.eof() && std::getline(ifs, line) && !this->stop) {
         if (line.size() > 0 and line[0] != 'I' and (line[0] != '9' or line[1] != '9')) {
             parse_fixes_file_line(line_no, line);
         }
@@ -343,7 +355,7 @@ void DataFileReader::parse_apts_file() {
     std::string line;
     int line_no = 0;
     ssize_t cur_seek = 0;
-    while (!ifs.eof() && std::getline(ifs, line)) {
+    while (!ifs.eof() && std::getline(ifs, line) && !this->stop) {
         if (line.size() > 0 and line[0] != 'I' and (line[0] != '9' or line[1] != '9')) {
             parse_apts_file_line(line_no, cur_seek, line);
         }

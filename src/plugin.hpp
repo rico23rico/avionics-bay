@@ -23,6 +23,7 @@ namespace avionicsbay {
 extern "C" {
     EXPORT_DLL bool initialize(const char* xplane_path);
     EXPORT_DLL const char* get_error(void);
+    EXPORT_DLL void terminate(void);
     xpdata_navaid_array_t get_navaid_by_name(xpdata_navaid_type_t, const char*);
     bool xpdata_is_ready(void);
 }

@@ -123,6 +123,7 @@ local function load_avionicsbay()
 
         bool initialize(const char*);
         const char* get_error(void);
+        void terminate(void);
         xpdata_navaid_array_t get_navaid_by_name(xpdata_navaid_type_t type, const char* name);
         xpdata_navaid_array_t get_navaid_by_freq  (xpdata_navaid_type_t, unsigned int);
         xpdata_navaid_array_t get_navaid_by_coords(xpdata_navaid_type_t, double, double);
@@ -162,6 +163,8 @@ local function load_avionicsbay()
     end
     
     print(ffi.string(AvionicsBay.c.get_nearest_apt().id))
+
+    AvionicsBay.c.terminate()
     
 end
 

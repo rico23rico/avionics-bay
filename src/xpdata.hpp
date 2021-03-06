@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <vector>
 
+extern "C" { void terminate(void); }
+
 namespace avionicsbay {
 
 extern std::shared_ptr<Logger> get_logger() noexcept;
@@ -27,6 +29,11 @@ public:
         // Init vector capacities
         fixes_all.reserve(200000);
         apts_all.reserve(30000);
+    }
+    
+    virtual ~XPData() {
+        // I must be the last one to be cleaned...
+        terminate();
     }
 
     void set_is_ready(bool is_ready) noexcept { this->is_ready = is_ready; }

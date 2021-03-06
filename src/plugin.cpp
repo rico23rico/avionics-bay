@@ -85,3 +85,11 @@ const char* get_error(void) {
     return fatal_error.c_str();
 }
 
+
+void terminate(void) {
+    dfr->worker_stop();
+    while (dfr->is_worker_running()) {
+        std::this_thread::yield();
+    }
+    
+}
