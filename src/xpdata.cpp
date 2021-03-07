@@ -4,8 +4,8 @@
 
 #define LOG *this->logger << STARTL
 
-#define DEG_TO_RAD(x) (x*M_PI/180.)
-#define RAD_TO_DEG(x) (x*180./M_PI)
+#define DEG_TO_RAD(x) ((x)*M_PI/180.)
+#define RAD_TO_DEG(x) ((x)*180./M_PI)
 
 static_assert(5 == DEG_TO_RAD(RAD_TO_DEG(5)));
 static_assert(0 == DEG_TO_RAD(0));
@@ -226,6 +226,12 @@ void XPData::push_apt_rwy(xpdata_apt_rwy_t &&rwy) noexcept {
     apts_rwy_all[apts_all.back().pos_seek].emplace_back(std::move(rwy));
 }
 
+void XPData::allocate_apt_details(xpdata_apt_t *apt) noexcept {
+    apts_details_all.emplace_back();
+    apt->details = &apts_details_all.back();
+}
+
+
 void XPData::index_apts_by_name() noexcept {
     LOG << logger_level_t::DEBUG << "[XPData] Indexing APTS by name [total=" << apts_all.size() << ']' << ENDL;
 
@@ -291,12 +297,12 @@ void XPData::index_apts_by_coords() noexcept {
     }
 }
 
-std::pair<const xpdata_apt_t* const*, size_t> XPData::get_apts_by_name(const std::string &name) const noexcept {
+std::pair<xpdata_apt_t* const*, size_t> XPData::get_apts_by_name(const std::string &name) const noexcept {
     try {
         const auto & element = this->apts_name.at(name);
-        return std::pair<const xpdata_apt_t* const*, size_t> (element.data(), element.size());
+        return std::pair<xpdata_apt_t* const*, size_t> (element.data(), element.size());
     } catch(...) {
-        return std::pair<const xpdata_apt_t* const*, size_t> (nullptr, 0);
+        return std::pair<xpdata_apt_t* const*, size_t> (nullptr, 0);
     }
 }
 std::pair<const xpdata_apt_t* const*, size_t> XPData::get_apts_by_coords(double d_lat, double d_lon) const noexcept {
@@ -318,10 +324,9 @@ std::pair<const xpdata_apt_t* const*, size_t> XPData::get_apts_by_coords(double 
 
 
 void XPData::update_nearest_airport() noexcept {
-
     auto acf_coords = get_acf_cur_pos();
     auto arpts = get_apts_by_coords(acf_coords.first, acf_coords.second);
-    
+
     double min_distance = 99999999.;
     const xpdata_apt_t *min_arpt = nullptr;
     
@@ -338,5 +343,111 @@ void XPData::update_nearest_airport() noexcept {
     this->nearest_airport = min_arpt;
     
 }
+
+
+void XPData::push_apt_gate(xpdata_apt_t *apt, xpdata_apt_gate_t &&gate) noexcept {
+    apts_details_gates[apt->pos_seek].push_back(std::move(gate));
+}
+
+void XPData::push_apt_taxi(xpdata_apt_t *apt, int color, const std::vector<xpdata_apt_node_t> &nodes) noexcept {
+
+    apts_details_nodes_all.push_back(nodes);
+
+    xpdata_apt_node_array_t new_node_array = {
+        .color = color,
+        .nodes = apts_details_nodes_all.back().data(),
+        .nodes_len = static_cast<int>(apts_details_nodes_all.back().size()),
+        .hole = nullptr
+    };
+    
+    apts_details_pavements_arrays[apt->pos_seek].push_back(new_node_array);
+    last_pushed_node_array = apts_details_pavements_arrays[apt->pos_seek].data();
+}
+
+void XPData::push_apt_line(xpdata_apt_t *apt, int color, const std::vector<xpdata_apt_node_t> &nodes) noexcept {
+
+    apts_details_nodes_all.push_back(nodes);
+
+    xpdata_apt_node_array_t new_node_array = {
+        .color = color,
+        .nodes = apts_details_nodes_all.back().data(),
+        .nodes_len = static_cast<int>(apts_details_nodes_all.back().size()),
+        .hole = nullptr
+    };
+    
+    apts_details_linear_feature_arrays[apt->pos_seek].push_back(new_node_array);
+    last_pushed_node_array = apts_details_linear_feature_arrays[apt->pos_seek].data();
+}
+
+void XPData::push_apt_bound(xpdata_apt_t *apt, int color, const std::vector<xpdata_apt_node_t> &nodes) noexcept {
+
+    apts_details_nodes_all.push_back(nodes);
+
+    xpdata_apt_node_array_t new_node_array = {
+        .color = color,
+        .nodes = apts_details_nodes_all.back().data(),
+        .nodes_len = static_cast<int>(apts_details_nodes_all.back().size()),
+        .hole = nullptr
+    };
+    
+    apts_details_boundaries_arrays[apt->pos_seek].push_back(new_node_array);
+    last_pushed_node_array = apts_details_boundaries_arrays[apt->pos_seek].data();
+}
+
+void XPData::push_apt_hole(xpdata_apt_t *apt, int color, const std::vector<xpdata_apt_node_t> &nodes) noexcept {
+
+    if (last_pushed_node_array == nullptr) { // This should not happen
+        LOG << logger_level_t::CRIT << "[XPData] Tried to push an hole without a taxi/line/bound." << ENDL;
+        return;
+    }
+
+    apts_details_nodes_all.push_back(nodes);
+    
+    xpdata_apt_node_array_t new_hole_array = {
+        .color = color,
+        .nodes = apts_details_nodes_all.back().data(),
+        .nodes_len = static_cast<int>(apts_details_nodes_all.back().size()),
+        .hole = nullptr
+    };
+    apts_details_holes_all.push_back(new_hole_array);
+
+    xpdata_apt_node_array_t *last_element = last_pushed_node_array;
+    while (last_element->hole != nullptr) {
+        last_element = last_element->hole;
+    }
+    
+    last_element->hole = &apts_details_holes_all.back();
+
+}
+
+void XPData::push_apt_route_taxi(const xpdata_apt_t *apt, xpdata_apt_route_t && route) noexcept {
+    apts_details_ruotes_arrays[apt->pos_seek].push_back(std::move(route));
+}
+
+void XPData::push_apt_route_id(const xpdata_apt_t *apt, int id, xpdata_coords_t && coords) noexcept {
+    apts_details_ruotes_id[apt->pos_seek][id] = std::move(coords);
+}
+
+
+
+void XPData::finalize_apt_details(xpdata_apt_t *apt) noexcept {
+    apt->details->gates = apts_details_gates[apt->pos_seek].data();
+    apt->details->gates_len = apts_details_gates[apt->pos_seek].size();
+    
+    apt->details->pavements = apts_details_pavements_arrays[apt->pos_seek].data();
+    apt->details->pavements_len = apts_details_pavements_arrays[apt->pos_seek].size();
+
+    apt->details->linear_features = apts_details_linear_feature_arrays[apt->pos_seek].data();
+    apt->details->linear_features_len = apts_details_linear_feature_arrays[apt->pos_seek].size();
+
+    apt->details->boundaries = apts_details_boundaries_arrays[apt->pos_seek].data();
+    apt->details->boundaries_len = apts_details_boundaries_arrays[apt->pos_seek].size();
+
+    apt->details->routes = apts_details_ruotes_arrays[apt->pos_seek].data();
+    apt->details->routes_len = apts_details_ruotes_arrays[apt->pos_seek].size();
+    
+    apt->is_loaded_details = true;
+}
+
 
 } // namespace avionicsbay

@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <list>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -70,7 +71,7 @@ public:
     void index_apts_by_name() noexcept;
     void index_apts_by_coords() noexcept;
 
-    std::pair<const xpdata_apt_t* const*, size_t> get_apts_by_name(const std::string &name) const noexcept;
+    std::pair<xpdata_apt_t* const*, size_t> get_apts_by_name(const std::string &name) const noexcept;
     std::pair<const xpdata_apt_t* const*, size_t> get_apts_by_coords(double lat, double lon) const noexcept;
 
     void update_nearest_airport() noexcept;
@@ -78,6 +79,27 @@ public:
         std::lock_guard<std::mutex> lk(mx_nearest_airport);
         return this->nearest_airport;
     }
+    
+/**************************************************************************************************/
+/** APT - details **/
+/**************************************************************************************************/
+    void push_apt_taxi(xpdata_apt_t *apt, int color, const std::vector<xpdata_apt_node_t> &nodes) noexcept;
+    void push_apt_line(xpdata_apt_t *apt, int color, const std::vector<xpdata_apt_node_t> &nodes) noexcept;
+    void push_apt_bound(xpdata_apt_t *apt, int color, const std::vector<xpdata_apt_node_t> &nodes) noexcept;
+    void push_apt_hole(xpdata_apt_t *apt, int color, const std::vector<xpdata_apt_node_t> &nodes) noexcept;
+
+    void push_apt_gate(xpdata_apt_t *apt, xpdata_apt_gate_t &&gate) noexcept;
+
+    void push_apt_route_taxi(const xpdata_apt_t *apt, xpdata_apt_route_t && route) noexcept;
+    void push_apt_route_id(const xpdata_apt_t *apt, int id, xpdata_coords_t && coords) noexcept;
+    
+    xpdata_coords_t get_route_point(long cur_seek, int id) const {
+        return apts_details_ruotes_id.at(cur_seek).at(id);
+    }
+    
+    void allocate_apt_details(xpdata_apt_t *apt) noexcept;
+    void finalize_apt_details(xpdata_apt_t *apt) noexcept;
+    
 
 private:
     std::shared_ptr<Logger> logger;
@@ -85,6 +107,8 @@ private:
     
     const xpdata_apt_t *nearest_airport = nullptr; // can be nullptr at any time
     std::mutex mx_nearest_airport;
+
+    xpdata_apt_node_array_t *last_pushed_node_array = nullptr;
 
 /**************************************************************************************************/
 /** NAVAIDS **/
@@ -110,6 +134,23 @@ private:
     std::unordered_map<std::string, std::vector<xpdata_apt_t*>> apts_name;
     std::map<std::pair<int, int>, std::vector<xpdata_apt_t*>> apts_coords;
 
+/**************************************************************************************************/
+/** APT - details **/
+/**************************************************************************************************/
+    std::list<xpdata_apt_details_t> apts_details_all;   // List is important here, because the
+                                                        // container is not static after initialization
+    std::unordered_map<long, std::vector<xpdata_apt_gate_t>> apts_details_gates;
+
+    std::unordered_map<long, std::vector<xpdata_apt_node_array_t>> apts_details_pavements_arrays;
+    std::unordered_map<long, std::vector<xpdata_apt_node_array_t>> apts_details_linear_feature_arrays;
+    std::unordered_map<long, std::vector<xpdata_apt_node_array_t>> apts_details_boundaries_arrays;
+
+    std::list<std::vector<xpdata_apt_node_t>> apts_details_nodes_all;
+    std::list<xpdata_apt_node_array_t> apts_details_holes_all;   // List is important here, because the
+                                                                 // container is not static after initialization
+
+    std::unordered_map<long, std::vector<xpdata_apt_route_t>> apts_details_ruotes_arrays;
+    std::unordered_map<long, std::unordered_map<int, xpdata_coords_t>> apts_details_ruotes_id;
 };
 
 

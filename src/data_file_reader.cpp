@@ -128,6 +128,24 @@ DataFileReader::DataFileReader(const std::string &xplane_directory) : stop(false
 
 }
 
+
+void DataFileReader::request_apts_details(const std::string &id) noexcept {
+    if (!xpdata->get_is_ready()) {
+        return; // XPData not yet initialized
+    }
+
+    // Check if airport exists
+    auto arpt = xpdata->get_apts_by_name(id);
+    if (arpt.second == 0) {
+        return; // Airport not found ?
+    }
+
+    // If it's not zero it should be 1 because airport id is unique
+
+    std::lock_guard<std::mutex> lk(mx_apt_details);
+    this->detail_arpt = arpt.first[0];
+}
+
 //**************************************************************************************************
 // WORKER
 //**************************************************************************************************
@@ -143,9 +161,9 @@ void DataFileReader::worker() noexcept {
 
     try {
         parse_navaids_file();
-        get_xpdata()->index_navaids_by_name();
-        get_xpdata()->index_navaids_by_freq();
-        get_xpdata()->index_navaids_by_coords();
+        xpdata->index_navaids_by_name();
+        xpdata->index_navaids_by_freq();
+        xpdata->index_navaids_by_coords();
     } 
     catch(const std::ifstream::failure &e) {
         LOG << logger_level_t::ERROR << "[DataFileReader] NAVAIDS I/O exception: " << e.what() << ENDL;
@@ -158,8 +176,8 @@ void DataFileReader::worker() noexcept {
 
     try {
         parse_fixes_file();
-        get_xpdata()->index_fixes_by_name();
-        get_xpdata()->index_fixes_by_coords();
+        xpdata->index_fixes_by_name();
+        xpdata->index_fixes_by_coords();
     } 
     catch(const std::ifstream::failure &e) {
         LOG << logger_level_t::ERROR << "[DataFileReader] FIX I/O exception: " << e.what() << ENDL;
@@ -172,8 +190,8 @@ void DataFileReader::worker() noexcept {
 
     try {
         parse_apts_file();
-        get_xpdata()->index_apts_by_name();
-        get_xpdata()->index_apts_by_coords();
+        xpdata->index_apts_by_name();
+        xpdata->index_apts_by_coords();
     } 
     catch(const std::ifstream::failure &e) {
         LOG << logger_level_t::ERROR << "[DataFileReader] APT I/O exception: " << e.what() << ENDL;
@@ -184,17 +202,28 @@ void DataFileReader::worker() noexcept {
         return;
     }
 
-    get_xpdata()->set_is_ready(true);
+    xpdata->set_is_ready(true);
 
     LOG << logger_level_t::INFO << "[DataFileReader] Data Ready." << ENDL;
 
     while(!this->stop) {
-        get_xpdata()->update_nearest_airport(); // No need synchronization for this
+        xpdata->update_nearest_airport(); // No need synchronization for this
 
         std::unique_lock<std::mutex> lk(mx_apt_details);
         cv_apt_details.wait_for(lk, std::chrono::seconds(NEAREST_APT_UPDATE_SEC));
-        
-        // TODO: Check if we need to update the OANS
+
+        xpdata_apt_t *temp_arpt=nullptr;
+
+        // Do we need to update detailed info of an airport?
+        if (this->detail_arpt != nullptr) {
+            temp_arpt = this->detail_arpt;
+            this->detail_arpt = nullptr;
+        }
+
+        lk.unlock();
+        if (temp_arpt != nullptr) {
+            parse_apts_details(temp_arpt);  // This may be very heavy, don't put this in the mutex
+        }
     }
     
     LOG << logger_level_t::INFO << "[DataFileReader] Thread shutting down..." << ENDL;
@@ -471,6 +500,282 @@ void DataFileReader::parse_apts_file_runway(int line_no, const std::vector<std::
         return;
     }
     
+}
+
+void DataFileReader::parse_apts_details(xpdata_apt_t *arpt) {
+
+    if (arpt->is_loaded_details) {
+        return;  // Nothing to do
+    }
+    
+    xpdata->allocate_apt_details(arpt); // Allocate and set the point of xpdata_apt_t
+
+    
+    std::ifstream ifs;
+    ifs.exceptions(std::ifstream::badbit);
+    
+    std::string filename = xplane_directory + APT_FILE_PATH;
+    LOG << logger_level_t::INFO << "[DataFileReader] [Loading=" << arpt->id << "] Trying to open " << filename << "..." << ENDL;
+    ifs.open(filename, std::ifstream::in);
+    
+    // Now we move the seek to the position of the airport we previously saved:
+    ifs.seekg(arpt->pos_seek);
+    
+    std::string line;
+    int line_no = 0;
+
+    bool first_airport_header = false;
+    while (!ifs.eof() && std::getline(ifs, line) && !this->stop) {
+        if (parse_apts_details_line(arpt, line_no, line)) {
+        
+            // This is the logic to stop: when I encounter the first airport it's my airport (just
+            // after the seek), then the next airport (and first_airport_header will be true),
+            // I exit
+            if (first_airport_header) {
+                break;
+            }
+            first_airport_header = true;
+        }
+        line_no++;
+    }
+
+    ifs.close();
+    LOG << logger_level_t::INFO << "[DataFileReader] Total lines read from " << filename << ": " << line_no << ENDL;
+    
+    xpdata->finalize_apt_details(arpt);  // Set the last pointers into the final struct and flag is_loaded_details
+    
+}
+
+void DataFileReader::parse_apts_details_tower(xpdata_apt_t *arpt, const std::vector<std::string> &splitted) {
+    if (splitted.size() < 3) {
+        return;     //  Should not happen
+    }
+
+    double lat = std::stod(splitted[1]);
+    double lon = std::stod(splitted[2]);
+    
+    arpt->details->tower_pos.lat = lat;
+    arpt->details->tower_pos.lon = lon;
+}
+
+void DataFileReader::parse_apts_details_arpt_gate(xpdata_apt_t *arpt, const std::vector<std::string> &splitted) {
+    if (splitted.size() < 7) {
+        return;     // Invalid gate
+    }
+
+    if (splitted[4] != "gate") {
+        return; // It means it's a runway, we are not interested in runways here.
+    }
+
+    all_string_container.emplace_back(splitted[6]);
+    const char* gate_name = all_string_container.back().c_str();
+    int gate_name_len = all_string_container.back().size();
+
+    double lat = std::stod(splitted[1]);
+    double lon = std::stod(splitted[2]);
+
+    xpdata_apt_gate_t gate = {
+        .name       = gate_name,
+        .name_len   = gate_name_len,
+        .coords     = { .lat=lat, .lon=lon }
+    };
+
+    xpdata->push_apt_gate(arpt, std::move(gate));
+    
+}
+
+void DataFileReader::parse_apts_details_linear_start(const std::vector<std::string> &splitted) {
+    if (splitted.size() < 3) {
+        return;     // Invalid line
+    }
+
+    double lat = std::stod(splitted[1]);
+    double lon = std::stod(splitted[2]);
+
+    if (splitted.size() >= 4) {
+        // We have also the color specified
+        current_color = std::stoi(splitted[3]);
+    }
+
+    xpdata_apt_node_t node = {
+        .coords     = { .lat=lat, .lon=lon },
+        .is_bez = false,
+    };
+
+    this->curr_node_list.push_back(std::move(node));
+}
+
+void DataFileReader::parse_apts_details_beizer_start(const std::vector<std::string> &splitted) {
+    if (splitted.size() < 5) {
+        return;     // Invalid line
+    }
+
+    double lat = std::stod(splitted[1]);
+    double lon = std::stod(splitted[2]);
+    double c_lat = std::stod(splitted[3]);
+    double c_lon = std::stod(splitted[4]);
+
+    if (splitted.size() >= 6) {
+        // We have also the color specified
+        current_color = std::stoi(splitted[5]);
+    }
+
+    xpdata_apt_node_t node = {
+        .coords     = { .lat=lat, .lon=lon },
+        .is_bez = true,
+        .bez_cp     = { .lat=c_lat, .lon=c_lon },
+    };
+
+    this->curr_node_list.push_back(std::move(node));
+}
+
+void DataFileReader::parse_apts_details_save(xpdata_apt_t *arpt) {
+
+    if (apt_detail_status == ROW_NONE) {
+        // This should not happen
+        LOG << logger_level_t::CRIT << "[DataFileReader] Detailed parser: incongruent status on line-close." << ENDL;
+        this->curr_node_list.clear();
+        return;
+    }
+
+
+    // 2 - Store the vector in XPData - note, we need a copy here
+    if (apt_detail_status == ROW_TAXI) {
+        xpdata->push_apt_taxi(arpt, current_color, curr_node_list);
+    } else if (apt_detail_status == ROW_LINE) {
+        xpdata->push_apt_line(arpt, current_color, curr_node_list);
+    } else if (apt_detail_status == ROW_BOUND) {
+        xpdata->push_apt_bound(arpt, current_color, curr_node_list);
+    } else if (apt_detail_status == ROW_HOLE) {
+        xpdata->push_apt_hole(arpt, current_color, curr_node_list);
+    }
+
+    // 3 - Clear the vector and the color for the next path
+    this->current_color = 0;
+    this->curr_node_list.clear();
+}
+
+void DataFileReader::parse_apts_details_linear_close(xpdata_apt_t *arpt, const std::vector<std::string> &splitted) {
+
+    // Add the last node to the vector
+    this->parse_apts_details_linear_start(splitted);
+    
+    // And then save to XPData
+    parse_apts_details_save(arpt); 
+}
+
+void DataFileReader::parse_apts_details_linear_end(xpdata_apt_t *arpt, const std::vector<std::string> &splitted) {
+    this->parse_apts_details_linear_close(arpt, splitted);  // At present their are handled in the same way
+}
+
+void DataFileReader::parse_apts_details_beizer_close(xpdata_apt_t *arpt, const std::vector<std::string> &splitted) {
+
+    // Add the last node to the vector
+    this->parse_apts_details_beizer_start(splitted);
+    
+    // And then save to XPData
+    parse_apts_details_save(arpt); 
+}
+
+void DataFileReader::parse_apts_details_beizer_end(xpdata_apt_t *arpt, const std::vector<std::string> &splitted) {
+    this->parse_apts_details_beizer_close(arpt, splitted);  // At present their are handled in the same way
+}
+
+
+void DataFileReader::parse_apts_details_route_point(xpdata_apt_t *arpt, const std::vector<std::string> &splitted) {
+    if (splitted.size() < 5) {
+        return;     //  Should not happen
+    }
+
+    double lat   = std::stod(splitted[1]);
+    double lon   = std::stod(splitted[2]);
+    int route_id = std::stoi(splitted[4]);
+    
+    xpdata->push_apt_route_id(arpt, route_id, { .lat = lat, .lon = lon });
+}
+
+void DataFileReader::parse_apts_details_route_taxi(xpdata_apt_t *arpt, const std::vector<std::string> &splitted) {
+    if (splitted.size() < 6) {
+        return;     //  Should not happen
+    }
+
+    if (splitted[4] == "runway") {
+        return;     // I'm not interested in runway routes
+    }
+
+    all_string_container.emplace_back(splitted[5]);
+    const char* route_name = all_string_container.back().c_str();
+    int route_name_len = all_string_container.back().size();
+
+    xpdata_apt_route_t new_route = {
+        .name = route_name,
+        .name_len = route_name_len,
+        .route_node_1 = std::stoi(splitted[1]),
+        .route_node_2 = std::stoi(splitted[2])
+    };
+
+    xpdata->push_apt_route_taxi(arpt, std::move(new_route));
+}
+
+bool DataFileReader::parse_apts_details_line(xpdata_apt_t * arpt, int line_no, const std::string &line) {
+    if (line.size() == 0) {
+        return false;
+    }
+
+    auto splitted = str_explode(line, ' ');
+    if (splitted.size() < 1) {
+        return false;     // Empty line
+    }
+    
+    const auto &id = splitted[0];
+    
+    try {
+        
+        if (id == "1") {
+            return true; // Airport header
+        }
+        else if (id == "14") { // Airport tower
+            parse_apts_details_tower(arpt, splitted);
+        }
+        else if (id == "110") { // Taxyways
+            apt_detail_status = ROW_TAXI;
+        } else if ( id == "120" ) { // Linear feature
+            apt_detail_status = ROW_LINE;
+        } else if ( id == "130" ) { // Linear feature
+            apt_detail_status = ROW_BOUND;
+        } else if ( id == "111" ) {
+            parse_apts_details_linear_start(splitted);
+        } else if ( id == "112" ) {
+            parse_apts_details_beizer_start(splitted);
+        } else if ( id == "113" ) {
+            parse_apts_details_linear_close(arpt, splitted);
+            apt_detail_status = ROW_HOLE;
+        } else if ( id == "114" ) {
+            parse_apts_details_beizer_close(arpt, splitted);
+            apt_detail_status = ROW_HOLE;
+        } else if ( id == "115" ) {
+            parse_apts_details_linear_end(arpt, splitted);
+            apt_detail_status = ROW_HOLE;
+        } else if ( id == "116" ) {
+            parse_apts_details_beizer_end(arpt, splitted);
+            apt_detail_status = ROW_HOLE;
+        } else if ( id == "1201" ) {
+            parse_apts_details_route_point(arpt, splitted);
+        } else if ( id == "1202" ) {
+            parse_apts_details_route_taxi(arpt, splitted);
+        } else if ( id == "1300" ) {
+            parse_apts_details_arpt_gate(arpt, splitted);
+        }
+
+    } catch(const std::invalid_argument &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] apt.dat:" << line_no << ": invalid parameter (failed str->num conversion)." << ENDL;
+        return false;
+    } catch(const std::out_of_range &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] apt.dat:" << line_no << ": invalid parameter (out-of-range str->num conversion)." << ENDL;
+        return false;
+    }
+
+    return false;
 }
 
 } // namespace avionicsbay

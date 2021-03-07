@@ -1,6 +1,5 @@
 #include "plugin.hpp"
 
-#include "data_file_reader.hpp"
 #include "utilities/logger.hpp"
 #include "api.hpp"
 
@@ -33,6 +32,11 @@ namespace avionicsbay {
     std::shared_ptr<XPData> get_xpdata() noexcept {
         return xpdata;
     }
+
+    std::shared_ptr<DataFileReader> get_dfr() noexcept {
+        return dfr;
+    }
+
 
     void set_acf_cur_pos(double lat, double lon) noexcept {
         std::lock_guard<std::mutex> lk(mx_acf_lat_lon);

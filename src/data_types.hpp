@@ -53,6 +53,56 @@ typedef struct xpdata_apt_rwy_t {
     
 } xpdata_apt_rwy_t;
 
+typedef struct xpdata_apt_node_t {
+
+    xpdata_coords_t coords;
+    bool is_bez;
+    xpdata_coords_t bez_cp;
+
+} xpdata_apt_node_t;
+
+typedef struct xpdata_apt_node_array_t {
+    int color;
+    
+    xpdata_apt_node_t *nodes;
+    int nodes_len;
+    
+    struct xpdata_apt_node_array_t *hole; // For linear feature this value is nullptr
+} xpdata_apt_node_array_t;
+
+typedef struct xpdata_apt_route_t {
+    const char *name;
+    int name_len;
+    int route_node_1;   // Identifiers for the route nodes, to be used with get_route_node()
+    int route_node_2;   // Identifiers for the route nodes, to be used with get_route_node()
+} xpdata_apt_route_t;
+
+typedef struct xpdata_apt_gate_t {
+    const char *name;
+    int name_len;
+    xpdata_coords_t coords;
+} xpdata_apt_gate_t;
+
+typedef struct xpdata_apt_details_t {
+    xpdata_coords_t tower_pos; 
+
+    xpdata_apt_node_array_t *pavements;
+    int pavements_len;
+    
+    xpdata_apt_node_array_t *linear_features;
+    int linear_features_len;
+
+    xpdata_apt_node_array_t *boundaries;
+    int boundaries_len;
+
+    xpdata_apt_route_t *routes;
+    int routes_len;
+
+    xpdata_apt_gate_t  *gates;
+    int gates_len;
+
+} xpdata_apt_details_t;
+
 typedef struct xpdata_apt_t {
     const char *id;         // e.g., LIRF
     int id_len;
@@ -68,6 +118,9 @@ typedef struct xpdata_apt_t {
     xpdata_coords_t apt_center;
     
     long pos_seek;   // For internal use only, do not modify this value
+    
+    bool is_loaded_details;
+    xpdata_apt_details_t *details;
     
 } xpdata_apt_t;
 

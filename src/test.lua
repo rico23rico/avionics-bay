@@ -52,12 +52,15 @@ local function load_avionicsbay()
         path = "./libavionicsbay.so"
 
     ffi.cdef[[
+
         typedef int xpdata_navaid_type_t;
 
         typedef struct xpdata_coords_t {
             double lat;
             double lon;
         } xpdata_coords_t;
+
+        /******************************* NAVAIDS *******************************/
         typedef struct xpdata_navaid_t {
             const char *id;         // e.g., SRN
             int id_len;
@@ -67,6 +70,7 @@ local function load_avionicsbay()
             xpdata_coords_t coords;
             int altitude;
             unsigned int frequency;
+            bool is_coupled_dme;    // True if the vor is coupled with DME
         } xpdata_navaid_t;
 
         typedef struct xpdata_navaid_array_t {
@@ -74,6 +78,7 @@ local function load_avionicsbay()
             int len;
         } xpdata_navaid_array_t;
 
+        /******************************* FIXES *******************************/
         typedef struct xpdata_fix_t {
             const char *id;         // e.g., ROMEO
             int id_len;
@@ -84,6 +89,8 @@ local function load_avionicsbay()
             const struct xpdata_fix_t * const * fixes;
             int len;
         } xpdata_fix_array_t;
+
+        /******************************* ARPT *******************************/
 
         typedef struct xpdata_apt_rwy_t {
             char name[4];
@@ -97,6 +104,56 @@ local function load_avionicsbay()
             bool has_ctr_lights;
             
         } xpdata_apt_rwy_t;
+
+        typedef struct xpdata_apt_node_t {
+
+            xpdata_coords_t coords;
+            bool is_bez;
+            xpdata_coords_t bez_cp;
+
+        } xpdata_apt_node_t;
+
+        typedef struct xpdata_apt_node_array_t {
+            int color;
+            
+            xpdata_apt_node_t *nodes;
+            int nodes_len;
+            
+            struct xpdata_apt_node_array_t *hole; // For linear feature this value is nullptr
+        } xpdata_apt_node_array_t;
+
+        typedef struct xpdata_apt_route_t {
+            const char *name;
+            int name_len;
+            int route_node_1;   // Identifiers for the route nodes, to be used with get_route_node()
+            int route_node_2;   // Identifiers for the route nodes, to be used with get_route_node()
+        } xpdata_apt_route_t;
+
+        typedef struct xpdata_apt_gate_t {
+            const char *name;
+            int name_len;
+            xpdata_coords_t coords;
+        } xpdata_apt_gate_t;
+
+        typedef struct xpdata_apt_details_t {
+            xpdata_coords_t tower_pos; 
+
+            xpdata_apt_node_array_t *pavements;
+            int pavements_len;
+            
+            xpdata_apt_node_array_t *linear_features;
+            int linear_features_len;
+
+            xpdata_apt_node_array_t *boundaries;
+            int boundaries_len;
+
+            xpdata_apt_route_t *routes;
+            int routes_len;
+
+            xpdata_apt_gate_t  *gates;
+            int gates_len;
+
+        } xpdata_apt_details_t;
 
         typedef struct xpdata_apt_t {
             const char *id;         // e.g., LIRF
@@ -114,27 +171,35 @@ local function load_avionicsbay()
             
             long pos_seek;   // For internal use only, do not modify this value
             
+            bool is_loaded_details;
+            xpdata_apt_details_t *details;
+            
         } xpdata_apt_t;
 
         typedef struct xpdata_apt_array_t {
             const struct xpdata_apt_t * const * apts;
             int len;
         } xpdata_apt_array_t;
-
-        bool initialize(const char*);
+        
+        
+        bool initialize(const char* xplane_path);
         const char* get_error(void);
         void terminate(void);
-        xpdata_navaid_array_t get_navaid_by_name(xpdata_navaid_type_t type, const char* name);
+        xpdata_navaid_array_t get_navaid_by_name  (xpdata_navaid_type_t, const char*);
         xpdata_navaid_array_t get_navaid_by_freq  (xpdata_navaid_type_t, unsigned int);
         xpdata_navaid_array_t get_navaid_by_coords(xpdata_navaid_type_t, double, double);
+
         xpdata_fix_array_t get_fixes_by_name  (const char*);
         xpdata_fix_array_t get_fixes_by_coords(double, double);
+
         xpdata_apt_array_t get_apts_by_name  (const char*);
         xpdata_apt_array_t get_apts_by_coords(double, double);
-        
-        
+
         const xpdata_apt_t* get_nearest_apt();
         void set_acf_coords(double lat, double lon);
+        void request_apts_details(const char* arpt_id);
+        xpdata_coords_t get_route_pos(const xpdata_apt_t *apt, int route_id);
+        
         bool xpdata_is_ready(void);
     ]]
 
@@ -150,7 +215,7 @@ local function load_avionicsbay()
     
     expose_functions()
 
-    AvionicsBay.c.set_acf_coords(40, 9);
+    AvionicsBay.c.set_acf_coords(45.645, 8.7188);
 
     print("WAIT")
     while not AvionicsBay.c.xpdata_is_ready() do
@@ -163,6 +228,32 @@ local function load_avionicsbay()
     end
     
     print(ffi.string(AvionicsBay.c.get_nearest_apt().id))
+
+    print("Loading details...")
+    AvionicsBay.c.request_apts_details("LIRF");
+    
+    while not AvionicsBay.c.get_apts_by_name("LIRF").apts[0].is_loaded_details do
+    end
+    print("Loaded...")
+
+    local airport = AvionicsBay.c.get_apts_by_name("LIRF").apts[0];
+    print("Numer of pavements: " .. airport.details.pavements_len)
+    print("Numer of linear features: " .. airport.details.linear_features_len)
+    print("Numer of boundaries: " .. airport.details.boundaries_len)
+    print("Numer of routes: " .. airport.details.routes_len)
+    print("Numer of gates: " .. airport.details.gates_len)
+    print("Pavements[0], color: " .. airport.details.pavements[0].color)
+    print("Pavements[0], nr. nodes: " .. airport.details.pavements[0].nodes_len)
+    print("Pavements[0], has_hole: " .. (airport.details.pavements[0].hole ~= nil and "YES" or "NO"))
+    print("Pavements[15], color: " .. airport.details.pavements[15].color)
+    print("Pavements[15], nr. nodes: " .. airport.details.pavements[15].nodes_len)
+    print("Pavements[15], has_hole: " .. (airport.details.pavements[15].hole ~= nil and "YES" or "NO"))
+    print("Pavements[30], color: " .. airport.details.pavements[15].color)
+    print("Pavements[30], nr. nodes: " .. airport.details.pavements[15].nodes_len)
+    print("Pavements[30], has_hole: " .. (airport.details.pavements[15].hole ~= nil and "YES" or "NO"))
+
+    print("Random route name: " .. ffi.string(airport.details.routes[2].name))
+    print("Random route lat: " .. AvionicsBay.c.get_route_pos(airport, airport.details.routes[2].route_node_1).lat)
 
     AvionicsBay.c.terminate()
     
