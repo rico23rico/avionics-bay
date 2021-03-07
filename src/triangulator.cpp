@@ -28,7 +28,7 @@ const std::vector<xpdata_coords_t> & Triangulator::triangulate(const xpdata_apt_
 
     std::vector<Point> real_polygon;
     for (int i=0; i < array->nodes_len; i++) {
-        real_polygon.push_back({array->nodes[i].coords.lat, array->nodes[i].coords.lon});
+        real_polygon.push_back({{array->nodes[i].coords.lat, array->nodes[i].coords.lon}});
     }
     
     full_dataset.push_back(real_polygon);
