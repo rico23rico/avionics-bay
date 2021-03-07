@@ -1,8 +1,10 @@
 #include "api.hpp"
 
 #include "plugin.hpp"
+#include "triangulator.hpp"
 
 std::shared_ptr<avionicsbay::XPData> xpdata;
+avionicsbay::Triangulator t;
 
 /**************************************************************************************************/
 /** Helpers functions **/
@@ -75,9 +77,24 @@ EXPORT_DLL void request_apts_details(const char* arpt_id) {
 }
 
 EXPORT_DLL xpdata_coords_t get_route_pos(const xpdata_apt_t *apt, int route_id) {
-    return xpdata->get_route_point(apt->pos_seek, route_id);
+    try {
+        return xpdata->get_route_point(apt->pos_seek, route_id);
+    } catch(...) {
+        return {0,0};   // If it doesn't exist
+    }
 }
 
+EXPORT_DLL xpdata_triangulation_t triangulate(const xpdata_apt_node_array_t* array) {
+
+    const auto &result = t.triangulate(array);
+
+    xpdata_triangulation_t triang = {
+        .points = result.data(),
+        .points_len = static_cast<int>(result.size())
+    };
+
+    return triang;
+}
 
 /**************************************************************************************************/
 /** MISc **/

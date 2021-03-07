@@ -181,7 +181,12 @@ local function load_avionicsbay()
             int len;
         } xpdata_apt_array_t;
         
-        
+
+        typedef struct xpdata_triangulation_t {
+            const xpdata_coords_t* points;
+            int points_len;
+        } xpdata_triangulation_t;
+
         bool initialize(const char* xplane_path);
         const char* get_error(void);
         void terminate(void);
@@ -199,7 +204,7 @@ local function load_avionicsbay()
         void set_acf_coords(double lat, double lon);
         void request_apts_details(const char* arpt_id);
         xpdata_coords_t get_route_pos(const xpdata_apt_t *apt, int route_id);
-        
+        xpdata_triangulation_t triangulate(const xpdata_apt_node_array_t* array);
         bool xpdata_is_ready(void);
     ]]
 
@@ -242,16 +247,14 @@ local function load_avionicsbay()
     print("Numer of boundaries: " .. airport.details.boundaries_len)
     print("Numer of routes: " .. airport.details.routes_len)
     print("Numer of gates: " .. airport.details.gates_len)
-    print("Pavements[0], color: " .. airport.details.pavements[0].color)
-    print("Pavements[0], nr. nodes: " .. airport.details.pavements[0].nodes_len)
-    print("Pavements[0], has_hole: " .. (airport.details.pavements[0].hole ~= nil and "YES" or "NO"))
-    print("Pavements[15], color: " .. airport.details.pavements[15].color)
-    print("Pavements[15], nr. nodes: " .. airport.details.pavements[15].nodes_len)
-    print("Pavements[15], has_hole: " .. (airport.details.pavements[15].hole ~= nil and "YES" or "NO"))
-    print("Pavements[30], color: " .. airport.details.pavements[15].color)
-    print("Pavements[30], nr. nodes: " .. airport.details.pavements[15].nodes_len)
-    print("Pavements[30], has_hole: " .. (airport.details.pavements[15].hole ~= nil and "YES" or "NO"))
-
+    
+    for i=0,10 do
+        print("Pavements[".. i .."], color: " .. airport.details.pavements[i].color)
+        print("Pavements[".. i .."], nr. nodes: " .. airport.details.pavements[i].nodes_len)
+        print("Pavements[".. i .."], has_hole: " .. (airport.details.pavements[i].hole ~= nil and "YES" or "NO"))
+        local triangles = AvionicsBay.c.triangulate(airport.details.pavements[i])
+        print("Total triangles: " .. triangles.points_len)
+    end
     print("Random route name: " .. ffi.string(airport.details.routes[2].name))
     print("Random route lat: " .. AvionicsBay.c.get_route_pos(airport, airport.details.routes[2].route_node_1).lat)
 

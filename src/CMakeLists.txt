@@ -9,6 +9,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(SOURCES api.cpp
             data_file_reader.cpp
             plugin.cpp
+            triangulator.cpp
             xpdata.cpp
             utilities/logger.cpp)
 

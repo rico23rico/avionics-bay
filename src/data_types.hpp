@@ -129,5 +129,8 @@ typedef struct xpdata_apt_array_t {
     int len;
 } xpdata_apt_array_t;
 
-
+typedef struct xpdata_triangulation_t {
+    const xpdata_coords_t* points;
+    int points_len;
+} xpdata_triangulation_t;
 #endif // DATA_TYPES_H

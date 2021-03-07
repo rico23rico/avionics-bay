@@ -26,6 +26,8 @@ extern "C" {
     
     EXPORT_DLL xpdata_coords_t get_route_pos(const xpdata_apt_t *apt, int route_id);
 
+    EXPORT_DLL xpdata_triangulation_t triangulate(const xpdata_apt_node_array_t* array);
+
     EXPORT_DLL bool xpdata_is_ready(void);
 }
 
