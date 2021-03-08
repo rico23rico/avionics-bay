@@ -229,6 +229,7 @@ void XPData::push_apt_rwy(xpdata_apt_rwy_t &&rwy) noexcept {
 void XPData::allocate_apt_details(xpdata_apt_t *apt) noexcept {
     apts_details_all.emplace_back();
     apt->details = &apts_details_all.back();
+    apt->details->tower_pos = {0., 0.};
 }
 
 
