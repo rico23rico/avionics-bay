@@ -2,6 +2,7 @@
 
 #include "utilities/earcut.hpp"
 
+#include <array>
 #include <iostream>
 
 namespace avionicsbay {
