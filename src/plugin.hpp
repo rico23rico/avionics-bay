@@ -23,7 +23,7 @@ namespace avionicsbay {
     std::pair<double, double> get_acf_cur_pos() noexcept;
 }
 extern "C" {
-    EXPORT_DLL bool initialize(const char* xplane_path);
+    EXPORT_DLL bool initialize(const char* xplane_path, const char* plane_path);
     EXPORT_DLL const char* get_error(void);
     EXPORT_DLL void terminate(void);
 

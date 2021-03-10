@@ -63,9 +63,9 @@ namespace avionicsbay {
     
 }
 
-bool initialize(const char* xplane_path) {
+bool initialize(const char* xplane_path, const char* plane_path) {
     try {
-        logger = std::make_shared<Logger>();
+        logger = std::make_shared<Logger>(plane_path);
     } catch(...) {
         fatal_error = "Unable to open the log file.";
         return false;

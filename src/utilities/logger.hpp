@@ -35,7 +35,7 @@ public:
         return *this;
     }
 
-    Logger();
+    Logger(const std::string &path);
     ~Logger() noexcept;
 
 private:

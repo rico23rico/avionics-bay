@@ -68,13 +68,13 @@ static std::string time_in_HH_MM_SS_MMM()
 }
 
 
-Logger::Logger()
+Logger::Logger(const std::string &path)
 {
 
     log_file.exceptions(~std::ios_base::goodbit);
     const std::string filename = LOG_FILENAME;
     // Try to open the log file
-    log_file.open(filename, std::ios_base::app);
+    log_file.open(path + filename, std::ios_base::app);
 }
 
 Logger::~Logger() noexcept {
