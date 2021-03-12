@@ -6,6 +6,20 @@
 std::shared_ptr<avionicsbay::XPData> xpdata;
 avionicsbay::Triangulator t;
 
+#if __GNUC__
+    #define likely(x)    __builtin_expect (!!(x), 1)
+    #define unlikely(x)  __builtin_expect (!!(x), 0)
+#else
+    #define likely(x)    (x)
+    #define unlikely(x)  (x)
+#endif
+
+#define SANITY_CHECK_ARRAY() if (unlikely(xpdata == nullptr)) { return {nullptr, 0}; }
+#define SANITY_CHECK_COORDS() if (unlikely(xpdata == nullptr)) { return {0, 0}; }
+#define SANITY_CHECK_PTR() if (unlikely(xpdata == nullptr)) { return nullptr; }
+#define SANITY_CHECK_VOID() if (unlikely(xpdata == nullptr)) { return; }
+#define SANITY_CHECK_BOOL() if (unlikely(xpdata == nullptr)) { return false; }
+
 /**************************************************************************************************/
 /** Helpers functions **/
 /**************************************************************************************************/
@@ -35,14 +49,17 @@ static xpdata_apt_array_t build_apt_array(std::pair<const xpdata_apt_t* const*, 
 /** NAVAIDS **/
 /**************************************************************************************************/
 EXPORT_DLL xpdata_navaid_array_t get_navaid_by_name(xpdata_navaid_type_t type, const char* name) {
+    SANITY_CHECK_ARRAY();
     return build_navaid_array(xpdata->get_navaids_by_name(type, name));
 }
 
 EXPORT_DLL xpdata_navaid_array_t get_navaid_by_freq  (xpdata_navaid_type_t type, unsigned int freq) {
+    SANITY_CHECK_ARRAY();
     return build_navaid_array(xpdata->get_navaids_by_freq(type, freq));
 }
 
 EXPORT_DLL xpdata_navaid_array_t get_navaid_by_coords(xpdata_navaid_type_t type, double lat, double lon) {
+    SANITY_CHECK_ARRAY();
     return build_navaid_array(xpdata->get_navaids_by_coords(type, lat, lon));
 }
 
@@ -50,10 +67,12 @@ EXPORT_DLL xpdata_navaid_array_t get_navaid_by_coords(xpdata_navaid_type_t type,
 /** FIXES **/
 /**************************************************************************************************/
 EXPORT_DLL xpdata_fix_array_t get_fixes_by_name(const char* name) {
+    SANITY_CHECK_ARRAY();
     return build_fix_array(xpdata->get_fixes_by_name(name));
 }
 
 EXPORT_DLL xpdata_fix_array_t get_fixes_by_coords(double lat, double lon) {
+    SANITY_CHECK_ARRAY();
     return build_fix_array(xpdata->get_fixes_by_coords(lat, lon));
 }
 
@@ -61,22 +80,27 @@ EXPORT_DLL xpdata_fix_array_t get_fixes_by_coords(double lat, double lon) {
 /** ARPTS **/
 /**************************************************************************************************/
 EXPORT_DLL xpdata_apt_array_t get_apts_by_name(const char* name) {
+    SANITY_CHECK_ARRAY();
     return build_apt_array(xpdata->get_apts_by_name(name));
 }
 
 EXPORT_DLL xpdata_apt_array_t get_apts_by_coords(double lat, double lon) {
+    SANITY_CHECK_ARRAY();
     return build_apt_array(xpdata->get_apts_by_coords(lat, lon));
 }
 
 EXPORT_DLL const xpdata_apt_t* get_nearest_apt() {
+    SANITY_CHECK_PTR();
     return xpdata->get_nearest_airport();
 }
 
 EXPORT_DLL void request_apts_details(const char* arpt_id) {
+    SANITY_CHECK_VOID();
     avionicsbay::get_dfr()->request_apts_details(arpt_id);
 }
 
 EXPORT_DLL xpdata_coords_t get_route_pos(const xpdata_apt_t *apt, int route_id) {
+    SANITY_CHECK_COORDS();
     try {
         return xpdata->get_route_point(apt->pos_seek, route_id);
     } catch(...) {
@@ -105,11 +129,12 @@ EXPORT_DLL void set_acf_coords(double lat, double lon) {
 }
 
 EXPORT_DLL bool xpdata_is_ready(void) {
+    SANITY_CHECK_BOOL();
     return xpdata->get_is_ready();
 }
 
 namespace avionicsbay {
-    void api_init() {
+    void api_init() noexcept {
         xpdata = get_xpdata();
     }
 }

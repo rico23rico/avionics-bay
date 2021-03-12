@@ -32,7 +32,7 @@ extern "C" {
 }
 
 namespace avionicsbay {
-    void api_init();
+    void api_init() noexcept;
 }
 
 #endif // API_H
