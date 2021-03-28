@@ -3,8 +3,8 @@
 #include "plugin.hpp"
 #include "triangulator.hpp"
 
-std::shared_ptr<avionicsbay::XPData> xpdata;
-avionicsbay::Triangulator t;
+static avionicsbay::XPData* xpdata;
+static avionicsbay::Triangulator t;
 
 #if __GNUC__
     #define likely(x)    __builtin_expect (!!(x), 1)
@@ -19,6 +19,8 @@ avionicsbay::Triangulator t;
 #define SANITY_CHECK_PTR() if (unlikely(xpdata == nullptr)) { return nullptr; }
 #define SANITY_CHECK_VOID() if (unlikely(xpdata == nullptr)) { return; }
 #define SANITY_CHECK_BOOL() if (unlikely(xpdata == nullptr)) { return false; }
+
+#define SANITY_CHECK_DFR_VOID() if (unlikely(avionicsbay::get_dfr() == nullptr)) { return; }
 
 /**************************************************************************************************/
 /** Helpers functions **/
@@ -95,7 +97,7 @@ EXPORT_DLL const xpdata_apt_t* get_nearest_apt() {
 }
 
 EXPORT_DLL void request_apts_details(const char* arpt_id) {
-    SANITY_CHECK_VOID();
+    SANITY_CHECK_DFR_VOID();
     avionicsbay::get_dfr()->request_apts_details(arpt_id);
 }
 
@@ -135,6 +137,6 @@ EXPORT_DLL bool xpdata_is_ready(void) {
 
 namespace avionicsbay {
     void api_init() noexcept {
-        xpdata = get_xpdata();
+        xpdata = get_xpdata().get();
     }
 }

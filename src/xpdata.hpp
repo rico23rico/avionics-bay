@@ -1,6 +1,12 @@
 #ifndef XPDATA_H
 #define XPDATA_H
 
+#ifdef _WIN32
+#define EXPORT_DLL __declspec( dllexport )
+#else
+#define EXPORT_DLL
+#endif
+
 #include "utilities/logger.hpp"
 #include "data_types.hpp"
 
@@ -14,7 +20,7 @@
 #include <unordered_map>
 #include <vector>
 
-extern "C" { void terminate(void); }
+extern "C" { EXPORT_DLL void terminate(void); }
 
 namespace avionicsbay {
 
@@ -33,6 +39,7 @@ public:
     }
     
     virtual ~XPData() {
+        *this->logger << STARTL << logger_level_t::DEBUG << "[XPData] Terminating..." << ENDL;
         // I must be the last one to be cleaned...
         terminate();
     }

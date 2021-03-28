@@ -25,7 +25,7 @@
 
 namespace avionicsbay {
 
-std::list<std::string> all_string_container;
+static std::list<std::string> all_string_container;
 
 //**************************************************************************************************
 // String support
@@ -225,6 +225,8 @@ void DataFileReader::worker() noexcept {
             parse_apts_details(temp_arpt);  // This may be very heavy, don't put this in the mutex
         }
     }
+    
+    xpdata->set_is_ready(false);
     
     LOG << logger_level_t::INFO << "[DataFileReader] Thread shutting down..." << ENDL;
 

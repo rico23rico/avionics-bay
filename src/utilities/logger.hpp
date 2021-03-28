@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <string>
+#include <fstream>
 
 namespace avionicsbay {
 
@@ -50,6 +51,10 @@ private:
     std::string curr_msg;
     logger_level_t curr_level;
     std::mutex msg_mx;
+    
+    std::ofstream log_file;
+    std::mutex    mx_log_file;
+
 };
 
 template<>

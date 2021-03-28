@@ -16,13 +16,15 @@ using avionicsbay::DataFileReader;
 using avionicsbay::XPData;
 
 static std::string fatal_error;
+
+static double acf_lat, acf_lon;
+static std::mutex mx_acf_lat_lon;
+
+
 static std::shared_ptr<Logger> logger;
 static std::shared_ptr<XPData> xpdata;
 
 static std::shared_ptr<DataFileReader> dfr;
-
-static double acf_lat, acf_lon;
-static std::mutex mx_acf_lat_lon;
 
 namespace avionicsbay {
     std::shared_ptr<Logger> get_logger() noexcept {
@@ -91,9 +93,14 @@ const char* get_error(void) {
 
 
 void terminate(void) {
+    if (!dfr) {
+        return;
+    }
+    LOG << logger_level_t::NOTICE << "Termination request..." << ENDL;
     dfr->worker_stop();
     while (dfr->is_worker_running()) {
         std::this_thread::yield();
     }
-    
+    dfr.reset();    // This will join()
+    LOG << logger_level_t::DEBUG << "DFR Terminated." << ENDL;
 }

@@ -2,7 +2,6 @@
 
 #include <chrono>
 #include <cstdlib>
-#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <mutex>
@@ -11,9 +10,6 @@
 
 #define LOG_FILENAME "avionics-bay-internal.log"
 #define MAX_QUEUE_LOGS 1024
-
-static std::ofstream log_file;
-static std::mutex    mx_log_file;
 
 namespace avionicsbay {
 
@@ -79,6 +75,7 @@ Logger::Logger(const std::string &path)
 
 Logger::~Logger() noexcept {
     try {
+        std::lock_guard<std::mutex> lk(mx_log_file);
         log_file.close();
     } catch(...) {}
 }
