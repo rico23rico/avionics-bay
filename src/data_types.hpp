@@ -19,6 +19,8 @@ typedef struct xpdata_navaid_t {
     int altitude;
     unsigned int frequency;
     bool is_coupled_dme;    // True if the vor is coupled with DME
+    int category;           // Category (also range in nm)
+    int bearing;            // Check XP documentation, multiplied by 1000
 } xpdata_navaid_t;
 
 typedef struct xpdata_navaid_array_t {

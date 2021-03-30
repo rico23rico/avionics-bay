@@ -270,7 +270,7 @@ void DataFileReader::parse_navaids_file_line(int line_no, const std::string &lin
 
         // Read the first field: line id
         auto type = std::stoi(splitted[0]);
-        if ((type < NAV_ID_NDB || type > NAV_ID_IM) && (type < NAV_ID_DME or type > NAV_ID_DME_ALONE)) {
+        if ((type < NAV_ID_NDB || type > NAV_ID_IM) && (type < NAV_ID_DME)) {
             return; // Not interesting point (actually no line should match this condition)
         }
 
@@ -295,7 +295,9 @@ void DataFileReader::parse_navaids_file_line(int line_no, const std::string &lin
             },
             .altitude = std::stoi(splitted[3]),
             .frequency = static_cast<unsigned>(std::stoi(splitted[4])),
-            .is_coupled_dme = false
+            .is_coupled_dme = false,
+            .category = std::stoi(splitted[5]),
+            .bearing  = static_cast<int>(std::stod(splitted[6]) * 1000)
         };
         
         if (type == NAV_ID_DME) {

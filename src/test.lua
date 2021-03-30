@@ -29,6 +29,7 @@ local function expose_functions()
         nav_array = AvionicsBay.c.get_navaid_by_freq(3, 11370);
         print("NAVAID BY FREQ: " .. nav_array.len)
         print(ffi.string(nav_array.navaids[1].full_name, nav_array.navaids[1].full_name_len))
+        print(nav_array.navaids[1].category, nav_array.navaids[1].bearing)
         
         nav_array = AvionicsBay.c.get_navaid_by_coords(3, 45.646801, 9.022850);
         print("NAVAID BY COORDS: " .. nav_array.len)
