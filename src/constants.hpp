@@ -11,5 +11,8 @@
 #define NAV_ID_IM        9
 #define NAV_ID_DME       12
 #define NAV_ID_DME_ALONE 13
+#define NAV_ID_GBAS_FINAL 14
+#define NAV_ID_GBAS_GS    15
+#define NAV_ID_GBAS_LAND  16
 
 #endif // CONSTANTS_H

@@ -19,10 +19,12 @@ extern "C" {
 
     EXPORT_DLL xpdata_apt_array_t get_apts_by_name  (const char*);
     EXPORT_DLL xpdata_apt_array_t get_apts_by_coords(double, double);
-
     EXPORT_DLL const xpdata_apt_t* get_nearest_apt();
-    EXPORT_DLL void set_acf_coords(double lat, double lon);
     EXPORT_DLL void request_apts_details(const char* arpt_id);
+
+    EXPORT_DLL int get_mora(double lat, double lon);
+
+    EXPORT_DLL void set_acf_coords(double lat, double lon);
     
     EXPORT_DLL xpdata_coords_t get_route_pos(const xpdata_apt_t *apt, int route_id);
 

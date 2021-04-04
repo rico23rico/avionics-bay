@@ -19,6 +19,7 @@
 
 #define NAV_FILE_PATH  "Resources/default data/earth_nav.dat"
 #define FIX_FILE_PATH  "Resources/default data/earth_fix.dat"
+#define MORA_FILE_PATH "Resources/default data/earth_mora.dat"
 #define APT_FILE_PATH "Resources/default scenery/default apt dat/Earth nav data/apt.dat"
 
 #define NEAREST_APT_UPDATE_SEC 2
@@ -199,6 +200,18 @@ void DataFileReader::worker() noexcept {
     }
     catch(...) {
         LOG << logger_level_t::CRIT << "[DataFileReader] APT Unexpected exception." << ENDL;
+        return;
+    }
+
+    try {
+        parse_mora_file();
+    } 
+    catch(const std::ifstream::failure &e) {
+        LOG << logger_level_t::ERROR << "[DataFileReader] MORA I/O exception: " << e.what() << ENDL;
+        return;
+    }
+    catch(...) {
+        LOG << logger_level_t::CRIT << "[DataFileReader] MORA Unexpected exception." << ENDL;
         return;
     }
 
@@ -781,5 +794,56 @@ bool DataFileReader::parse_apts_details_line(xpdata_apt_t * arpt, int line_no, c
 
     return false;
 }
+
+
+//**************************************************************************************************
+// MORA
+//**************************************************************************************************
+void DataFileReader::parse_mora_file() {
+    std::ifstream ifs;
+    ifs.exceptions(std::ifstream::badbit);
+    
+    std::string filename = xplane_directory + MORA_FILE_PATH;
+    LOG << logger_level_t::INFO << "[DataFileReader] Trying to open " << filename << "..." << ENDL;
+    ifs.open(filename, std::ifstream::in);
+    
+    std::string line;
+    int line_no = 0;
+    while (!ifs.eof() && std::getline(ifs, line) && !this->stop) {
+        if (line.size() > 0 and line[0] != 'I' and (line[0] != '9' or line[1] != '9')) {
+            parse_mora_line(line_no, line);
+        }
+        line_no++;
+    }
+
+    ifs.close();
+    LOG << logger_level_t::INFO << "[DataFileReader] Total lines read from " << filename << ": " << line_no << ENDL;
+}
+
+void DataFileReader::parse_mora_line(int line_no, const std::string &line) {
+    auto splitted = str_explode(line, ' ');
+    if (splitted.size() < 3) {
+        return;     // Empty or invalid line
+    }
+
+    try {
+
+        auto lat = std::stoi(splitted[0]);  // THis is in +123 format
+        auto lon = std::stoi(splitted[1]);  // THis is in +123 format
+
+    for(int i=2; i < splitted.size(); i++) {
+        auto mora_value = std::stoi(splitted[i]);  // THis is in +123 format
+        xpdata->push_mora(lat, lon, mora_value);
+    }
+
+    } catch(const std::invalid_argument &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_mora.dat:" << line_no << ": invalid parameter (failed str->num conversion)." << ENDL;
+        return;
+    } catch(const std::out_of_range &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_mora.dat:" << line_no << ": invalid parameter (out-of-range str->num conversion)." << ENDL;
+        return;
+    }   
+}
+
 
 } // namespace avionicsbay

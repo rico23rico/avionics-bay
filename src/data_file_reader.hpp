@@ -84,6 +84,10 @@ private:
     void parse_apts_details_arpt_gate(xpdata_apt_t *arpt, const std::vector<std::string> &splitted);
 
     void parse_apts_details_save(xpdata_apt_t *arpt);
+    
+    void parse_mora_file();
+    void parse_mora_line(int line_no, const std::string &line);
+
 };
 
 }

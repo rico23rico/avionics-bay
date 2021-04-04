@@ -450,5 +450,22 @@ void XPData::finalize_apt_details(xpdata_apt_t *apt) noexcept {
     apt->is_loaded_details = true;
 }
 
+/**************************************************************************************************/
+/** MORA **/
+/**************************************************************************************************/
+
+void XPData::push_mora(int16_t lat_idx, int16_t lon_idx, uint16_t value) noexcept {
+    auto lat_lon_pair = std::pair<int16_t, int16_t>(lat_idx, lon_idx);
+    moras[lat_lon_pair] = value;
+}
+
+uint16_t XPData::get_mora(double lat, double lon) const noexcept {
+    auto lat_lon_pair = std::pair<int16_t, int16_t>(static_cast<int16_t>(lat), static_cast<int16_t>(lon));
+    try {
+        return moras.at(lat_lon_pair);
+    } catch(...) {
+        return 0;
+    }
+}
 
 } // namespace avionicsbay

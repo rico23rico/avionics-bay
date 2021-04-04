@@ -19,6 +19,7 @@ static avionicsbay::Triangulator t;
 #define SANITY_CHECK_PTR() if (unlikely(xpdata == nullptr)) { return nullptr; }
 #define SANITY_CHECK_VOID() if (unlikely(xpdata == nullptr)) { return; }
 #define SANITY_CHECK_BOOL() if (unlikely(xpdata == nullptr)) { return false; }
+#define SANITY_CHECK_INT() if (unlikely(xpdata == nullptr)) { return 0; }
 
 #define SANITY_CHECK_DFR_VOID() if (unlikely(avionicsbay::get_dfr() == nullptr)) { return; }
 
@@ -134,6 +135,19 @@ EXPORT_DLL bool xpdata_is_ready(void) {
     SANITY_CHECK_BOOL();
     return xpdata->get_is_ready();
 }
+
+/**************************************************************************************************/
+/** MORA **/
+/**************************************************************************************************/
+EXPORT_DLL int get_mora(double lat, double lon) {
+    SANITY_CHECK_INT()
+    try {
+        return xpdata->get_mora(lat, lon);
+    } catch(...) {
+        return 0;   // If it doesn't exist
+    }
+}
+
 
 namespace avionicsbay {
     void api_init() noexcept {

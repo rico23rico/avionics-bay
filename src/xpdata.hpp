@@ -107,7 +107,12 @@ public:
     void allocate_apt_details(xpdata_apt_t *apt) noexcept;
     void finalize_apt_details(xpdata_apt_t *apt) noexcept;
     
-
+/**************************************************************************************************/
+/** MORAs **/
+/**************************************************************************************************/
+    void push_mora(int16_t lat_idx, int16_t lon_idx, uint16_t value) noexcept;
+    uint16_t get_mora(double lat, double lon) const noexcept;
+    
 private:
     std::shared_ptr<Logger> logger;
     std::atomic<bool> is_ready;
@@ -158,6 +163,12 @@ private:
 
     std::unordered_map<long, std::vector<xpdata_apt_route_t>> apts_details_ruotes_arrays;
     std::unordered_map<long, std::unordered_map<int, xpdata_coords_t>> apts_details_ruotes_id;
+    
+/**************************************************************************************************/
+/** MORA **/
+/**************************************************************************************************/
+    std::map<std::pair<int16_t, int16_t>, uint16_t> moras;
+    
 };
 
 
