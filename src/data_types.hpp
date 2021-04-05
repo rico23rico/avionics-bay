@@ -1,6 +1,8 @@
 #ifndef DATA_TYPES_H
 #define DATA_TYPES_H
 
+#include <cstdint>
+
 typedef int xpdata_navaid_type_t;
 
 typedef struct xpdata_coords_t {
@@ -135,4 +137,60 @@ typedef struct xpdata_triangulation_t {
     const xpdata_coords_t* points;
     int points_len;
 } xpdata_triangulation_t;
+
+
+/** CIFP **/
+typedef struct xpdata_cifp_leg_t {
+    const char *leg_name;   // FIX
+    int leg_name_len;
+    
+    char turn_direction;      // L - left, R - right, E - either, M - left required, S - right required
+    uint8_t leg_type;         // 1 - IF, 2 - TF, 3 - CF, 4 - DF, 5 - FA, 6 - FC, 7 - FD, 8 - FM, 9 - CA, 10 - CD, 11 - CI, 12 - CR, 13 - RF, 14 - AF, 15 - VA, 16 - VD, 17 - VI, 18 - VM, 19 - VR, 20 - PI, 21 - HA, 22 - HF, 23 - HM
+    
+    uint32_t radius;          // in nm * 10000
+    uint16_t theta;           // mag bearing in degees * 10
+    uint16_t rho;             // distance in nm * 10
+    uint16_t outb_mag;        // Outbound Magnetic Course in degees * 10
+    uint16_t rte_hold;        // Route distance / Hold time/dist - distance in nm * 10 
+    bool outb_mag_in_true;    // The outb_mag is in TRUE not mag
+    bool rte_hold_in_time;    // The rte_hold is in time not distance (MM.M where M = minutes)
+    
+    uint8_t cstr_alt_type;    // 0 - not present, 1 at or above, 2 at or below, 3 - at, 4 - At or above to at or below, 5 - Glide // + 20 if FL altitude 1 // + 40 if FL altitude 2
+    uint32_t cstr_altitude1;
+    uint32_t cstr_altitude2;
+
+    uint8_t cstr_speed_type; // 0 - not present, 1 at or above, 2 at or below, 3 - at
+    uint32_t cstr_speed;     // Speed in kts
+    
+    const char *center_fix;
+    int center_fix_len;
+    
+} xpdata_cifp_leg_t;
+
+typedef struct xpdata_cifp_data_t {
+    char type;
+    const char *proc_name;
+    int proc_name_len;
+    const char *trans_name;
+    int trans_name_len;
+
+    xpdata_cifp_leg_t *legs;
+    int legs_len;
+
+    
+} xpdata_cifp_data_t;
+
+typedef struct xpdata_cifp_array_t {
+    const struct xpdata_cifp_data_t * const * data;
+    int len;
+} xpdata_cifp_array_t;
+
+
+typedef struct xpdata_cifp_t {
+    xpdata_cifp_array_t sids;
+    xpdata_cifp_array_t stars;
+    xpdata_cifp_array_t apprs;
+} xpdata_cifp_t;
+
+
 #endif // DATA_TYPES_H
