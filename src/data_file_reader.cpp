@@ -833,7 +833,7 @@ void DataFileReader::parse_mora_line(int line_no, const std::string &line) {
 
     for(int i=2; i < splitted.size(); i++) {
         auto mora_value = std::stoi(splitted[i]);  // THis is in +123 format
-        xpdata->push_mora(lat, lon, mora_value);
+        xpdata->push_mora(lat, lon+i-2, mora_value);
     }
 
     } catch(const std::invalid_argument &e) {

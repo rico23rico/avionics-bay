@@ -199,14 +199,18 @@ xpdata_fix_array_t get_fixes_by_coords(double, double);
 
 xpdata_apt_array_t get_apts_by_name  (const char*);
 xpdata_apt_array_t get_apts_by_coords(double, double);
-
 const xpdata_apt_t* get_nearest_apt();
-void set_acf_coords(double lat, double lon);
 void request_apts_details(const char* arpt_id);
-    
+
+int get_mora(double lat, double lon);
+
+void set_acf_coords(double lat, double lon);
+
 xpdata_coords_t get_route_pos(const xpdata_apt_t *apt, int route_id);
 
 xpdata_triangulation_t triangulate(const xpdata_apt_node_array_t* array);
+
+xpdata_cifp_t get_cifp(const char* airport_id);
 
 bool xpdata_is_ready(void);
 

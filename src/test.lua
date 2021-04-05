@@ -106,6 +106,9 @@ local function load_avionicsbay()
     print("Random route name: " .. ffi.string(airport.details.routes[2].name))
     print("Random route lat: " .. AvionicsBay.c.get_route_pos(airport, airport.details.routes[2].route_node_1).lat)
 
+    print("Random MORA: " .. AvionicsBay.c.get_mora(45.52, 10.23))
+
+
     AvionicsBay.c.terminate()
     
 end
