@@ -8,6 +8,7 @@
 #endif
 
 #include "xpdata.hpp"
+#include "cifp_parser.hpp"
 #include "data_file_reader.hpp"
 #include "utilities/logger.hpp"
 
@@ -18,6 +19,7 @@ namespace avionicsbay {
     std::shared_ptr<Logger> get_logger() noexcept;
     std::shared_ptr<XPData> get_xpdata() noexcept;
     std::shared_ptr<DataFileReader> get_dfr() noexcept;
+    std::shared_ptr<CIFPParser> get_cifp() noexcept;
     
     void set_acf_cur_pos(double lat, double lon) noexcept;
     std::pair<double, double> get_acf_cur_pos() noexcept;

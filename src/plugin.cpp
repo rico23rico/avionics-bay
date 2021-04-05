@@ -9,6 +9,7 @@
 
 #define LOG *logger << avionicsbay::STARTL
 
+using avionicsbay::CIFPParser;
 using avionicsbay::Logger;
 using avionicsbay::ENDL;
 using avionicsbay::logger_level_t;
@@ -25,6 +26,7 @@ static std::shared_ptr<Logger> logger;
 static std::shared_ptr<XPData> xpdata;
 
 static std::shared_ptr<DataFileReader> dfr;
+static std::shared_ptr<CIFPParser> cifp;
 
 namespace avionicsbay {
     std::shared_ptr<Logger> get_logger() noexcept {
@@ -39,6 +41,9 @@ namespace avionicsbay {
         return dfr;
     }
 
+    std::shared_ptr<CIFPParser> get_cifp() noexcept {
+        return cifp;
+    }
 
     void set_acf_cur_pos(double lat, double lon) noexcept {
         std::lock_guard<std::mutex> lk(mx_acf_lat_lon);
@@ -62,7 +67,19 @@ namespace avionicsbay {
         }
         return true;
     }
-    
+
+    bool init_cifp_parser(const char* xplane_path) {
+        try {
+            cifp = std::make_shared<CIFPParser>(xplane_path);
+        } catch (const std::runtime_error &err) {
+            LOG << logger_level_t::ERROR << "CIFPParser Error: " << err.what() << ENDL;
+            return false;
+        } catch (...) {
+            LOG << logger_level_t::CRIT << "CIFPParser Unexpected error." << ENDL;
+            return false;
+        }
+        return true;
+    }
 }
 
 bool initialize(const char* xplane_path, const char* plane_path) {
@@ -78,6 +95,10 @@ bool initialize(const char* xplane_path, const char* plane_path) {
     xpdata = std::make_shared<XPData>();
 
     if (! avionicsbay::init_data_file_reader(xplane_path)) {
+        return false;
+    }
+    
+    if (! avionicsbay::init_cifp_parser(xplane_path)) {
         return false;
     }
 

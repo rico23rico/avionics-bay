@@ -1,5 +1,6 @@
 #include "data_file_reader.hpp"
 
+#include "utilities/filesystem.hpp"
 #include "constants.hpp"
 #include "data_types.hpp"
 #include "plugin.hpp"
@@ -11,8 +12,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <vector>
 
 #define LOG *this->logger << STARTL
@@ -66,28 +65,6 @@ std::string str_implode(I begin, I end, std::string const& separator)
 //**************************************************************************************************
 // INITIALIZATION
 //**************************************************************************************************
-
-static bool is_a_directory(const std::string& name) noexcept {
-    struct stat info;
-    if( stat( name.c_str(), &info ) != 0 ) {
-        return false;
-    } else if( info.st_mode & S_IFDIR ) { 
-        return true;
-    } else {
-        return false;
-    }
-}
-
-static bool is_a_file (const std::string& name) noexcept {
-    struct stat info;
-    if( stat( name.c_str(), &info ) != 0 ) {
-        return false;
-    } else if( info.st_mode & S_IFREG ) { 
-        return true;
-    } else {
-        return false;
-    }
-}
 
 void DataFileReader::perform_init_checks() {
     if (!is_a_directory(xplane_directory)) {
