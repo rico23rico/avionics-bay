@@ -144,7 +144,7 @@ typedef struct xpdata_cifp_leg_t {
     const char *leg_name;   // FIX
     int leg_name_len;
     
-    char turn_direction;      // L - left, R - right, E - either, M - left required, S - right required
+    char turn_direction;      // N - none, L - left, R - right, E - either, M - left required, S - right required, F - either required
     uint8_t leg_type;         // 1 - IF, 2 - TF, 3 - CF, 4 - DF, 5 - FA, 6 - FC, 7 - FD, 8 - FM, 9 - CA, 10 - CD, 11 - CI, 12 - CR, 13 - RF, 14 - AF, 15 - VA, 16 - VD, 17 - VI, 18 - VM, 19 - VR, 20 - PI, 21 - HA, 22 - HF, 23 - HM
     
     uint32_t radius;          // in nm * 10000
@@ -155,12 +155,14 @@ typedef struct xpdata_cifp_leg_t {
     bool outb_mag_in_true;    // The outb_mag is in TRUE not mag
     bool rte_hold_in_time;    // The rte_hold is in time not distance (MM.M where M = minutes)
     
-    uint8_t cstr_alt_type;    // 0 - not present, 1 at or above, 2 at or below, 3 - at, 4 - At or above to at or below, 5 - Glide // + 20 if FL altitude 1 // + 40 if FL altitude 2
+    uint8_t cstr_alt_type;    // see constants
     uint32_t cstr_altitude1;
     uint32_t cstr_altitude2;
 
     uint8_t cstr_speed_type; // 0 - not present, 1 at or above, 2 at or below, 3 - at
     uint32_t cstr_speed;     // Speed in kts
+    
+    uint16_t vpath_angle;   // Only for descent, to be considered as negative
     
     const char *center_fix;
     int center_fix_len;
@@ -177,11 +179,12 @@ typedef struct xpdata_cifp_data_t {
     xpdata_cifp_leg_t *legs;
     int legs_len;
 
+    int _legs_arr_ref;   // For internal use only
     
 } xpdata_cifp_data_t;
 
 typedef struct xpdata_cifp_array_t {
-    const struct xpdata_cifp_data_t * const * data;
+    const struct xpdata_cifp_data_t * data;
     int len;
 } xpdata_cifp_array_t;
 

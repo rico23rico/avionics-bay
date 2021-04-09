@@ -211,6 +211,8 @@ xpdata_coords_t get_route_pos(const xpdata_apt_t *apt, int route_id);
 xpdata_triangulation_t triangulate(const xpdata_apt_node_array_t* array);
 
 xpdata_cifp_t get_cifp(const char* airport_id);
+void load_cifp(const char* airport_id);
+bool is_cifp_ready();
 
 bool xpdata_is_ready(void);
 

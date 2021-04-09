@@ -22,6 +22,8 @@ static avionicsbay::Triangulator t;
 #define SANITY_CHECK_INT() if (unlikely(xpdata == nullptr)) { return 0; }
 
 #define SANITY_CHECK_DFR_VOID() if (unlikely(avionicsbay::get_dfr() == nullptr)) { return; }
+#define SANITY_CHECK_CIFP_VOID() if (unlikely(avionicsbay::get_cifp() == nullptr)) { return; }
+#define SANITY_CHECK_CIFP_BOOL() if (unlikely(avionicsbay::get_cifp() == nullptr)) { return false; }
 
 /**************************************************************************************************/
 /** Helpers functions **/
@@ -148,6 +150,27 @@ EXPORT_DLL int get_mora(double lat, double lon) {
     }
 }
 
+/**************************************************************************************************/
+/** CFP **/
+/**************************************************************************************************/
+EXPORT_DLL xpdata_cifp_t get_cifp(const char* airport_id) {
+    if (!avionicsbay::get_cifp()->is_ready()) {
+        return {};
+    }
+    
+    return avionicsbay::get_cifp()->get_full_cifp(airport_id);
+
+}
+
+EXPORT_DLL void load_cifp(const char* airport_id) {
+    SANITY_CHECK_CIFP_VOID();
+    avionicsbay::get_cifp()->load_airport(airport_id);
+
+}
+
+EXPORT_DLL bool is_cifp_ready() {
+    return avionicsbay::get_cifp()->is_ready();
+}
 
 namespace avionicsbay {
     void api_init() noexcept {

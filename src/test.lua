@@ -75,6 +75,17 @@ local function load_avionicsbay()
     end
     print("READY")
 
+    AvionicsBay.c.load_cifp("LIML")
+    print("WAIT CIFP")
+    while not AvionicsBay.c.is_cifp_ready() do
+    end
+    print("READY CIFP")
+    AvionicsBay.c.get_cifp("LIML")
+
+    if true then
+        return
+    end
+
     print(AvionicsBay.test())
     
     while AvionicsBay.c.get_nearest_apt() == nil do
