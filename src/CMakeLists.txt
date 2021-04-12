@@ -29,7 +29,7 @@ endif (MINGW)
 
 
 if (APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libgcc -static-libstdc++")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif (APPLE)
 
 set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/../../64/")
