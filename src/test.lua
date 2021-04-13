@@ -7,6 +7,54 @@ local PATH_XPLANE  = "/usr/share/X-Plane 11/"
 local PATH_LOGFILE = "/tmp/"
 
 local AvionicsBay = {}
+
+local function convert_cifp_array(rawdata, cifp_arr)
+    if rawdata then
+        return {
+            data = cifp_arr.data,
+            len  = cifp_arr.len
+        }
+    end
+    
+    to_return = {}
+    for i=1,cifp_arr.len do
+        print("i=" .. i .. " tot=" .. cifp_arr.len)
+	print("plen=" .. cifp_arr.data[i-1].proc_name_len)
+	print("tlen=" .. cifp_arr.data[i-1].trans_name_len)
+        local new_dat =  {
+            proc_name   = ffi.string(cifp_arr.data[i-1].proc_name,  cifp_arr.data[i-1].proc_name_len),
+            trans_name  = ffi.string(cifp_arr.data[i-1].trans_name,  cifp_arr.data[i-1].trans_name_len),
+            legs = {}
+        }
+        
+        for j=1,cifp_arr.data[i-1].legs_len do
+            print("i=" .. i .. " j=" .. j)
+            local l = cifp_arr.data[i-1].legs[j-1]
+		print(l.leg_name, l.leg_name_len)
+            table.insert(new_dat.legs, {
+                leg_name = ffi.string(l.leg_name, l.leg_name_len),
+                turn_direction = l.turn_direction,
+                leg_type = l.leg_type,
+                radius = l.radius,
+                theta = l.theta,
+                rho = l.rho,
+                outb_mag = l.outb_mag,
+                rte_hold = l.rte_hold,
+                outb_mag_in_true = l.outb_mag_in_true,
+                rte_hold_in_time = l.rte_hold_in_time,
+                cstr_alt_type = l.cstr_alt_type,
+                cstr_altitude1 = l.cstr_altitude1,
+                cstr_altitude2 = l.cstr_altitude2,
+                cstr_speed_type = l.cstr_speed_type,
+                cstr_speed = l.cstr_speed,
+                center_fix = ffi.string(l.center_fix, l.center_fix_len)
+            })
+        end
+        
+        table.insert(to_return, new_dat)
+    end
+    return to_return
+end
     
 local function expose_functions()
 
@@ -71,8 +119,8 @@ local function load_avionicsbay()
     AvionicsBay.c.set_acf_coords(32.149534655, -110.83512209);
 
     print("WAIT")
-    while not AvionicsBay.c.xpdata_is_ready() do
-    end
+--    while not AvionicsBay.c.xpdata_is_ready() do
+--    end
     print("READY")
 
     AvionicsBay.c.load_cifp("LIML")
@@ -80,12 +128,19 @@ local function load_avionicsbay()
     while not AvionicsBay.c.is_cifp_ready() do
     end
     print("READY CIFP")
-    AvionicsBay.c.get_cifp("LIML")
+    a = AvionicsBay.c.get_cifp("LIML")
+    print("NR SIDS: " .. a.sids.len)
+    print("NR STARS: " ..  a.stars.len)
+    print("NR APPS: " .. a.apprs.len)
+
+    local x = convert_cifp_array(false, a.sids)
+    local x = convert_cifp_array(false, a.stars)
+    local x = convert_cifp_array(false, a.apprs)
+    print(x)
 
     if true then
-        return
+	    return
     end
-
     print(AvionicsBay.test())
     
     while AvionicsBay.c.get_nearest_apt() == nil do

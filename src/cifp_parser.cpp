@@ -370,13 +370,13 @@ void CIFPParser::parse_sid(const std::string &arpt_id, int id, const std::vector
         index = data_sid_idx.at(index_str);
     }
 
-    xpdata_cifp_data_t &cifp_ref = data_sid[arpt_id][index];
+    int leg_array_id = data_sid.at(arpt_id).at(index)._legs_arr_ref;
     
     xpdata_cifp_leg_t new_leg;
 
     parse_leg(new_leg, splitted);
 
-    legs_array[cifp_ref._legs_arr_ref].push_back(std::move(new_leg));
+    legs_array[leg_array_id].push_back(std::move(new_leg));
 
 }
 
@@ -397,13 +397,13 @@ void CIFPParser::parse_star(const std::string &arpt_id, int id, const std::vecto
         index = data_star_idx.at(index_str);
     }
 
-    xpdata_cifp_data_t &cifp_ref = data_star[arpt_id][index];
+    int leg_array_id = data_star.at(arpt_id).at(index)._legs_arr_ref;
     
     xpdata_cifp_leg_t new_leg;
 
     parse_leg(new_leg, splitted);
 
-    legs_array[cifp_ref._legs_arr_ref].push_back(std::move(new_leg));
+    legs_array[leg_array_id].push_back(std::move(new_leg));
 
 }
 
@@ -424,13 +424,13 @@ void CIFPParser::parse_appch(const std::string &arpt_id, int id, const std::vect
         index = data_app_idx.at(index_str);
     }
 
-    xpdata_cifp_data_t &cifp_ref = data_app[arpt_id][index];
+    int leg_array_id = data_app.at(arpt_id).at(index)._legs_arr_ref;
     
     xpdata_cifp_leg_t new_leg;
 
     parse_leg(new_leg, splitted);
 
-    legs_array[cifp_ref._legs_arr_ref].push_back(std::move(new_leg));
+    legs_array[leg_array_id].push_back(std::move(new_leg));
 
 }
 

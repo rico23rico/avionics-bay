@@ -40,8 +40,7 @@ public:
     
     virtual ~XPData() {
         *this->logger << STARTL << logger_level_t::DEBUG << "[XPData] Terminating..." << ENDL;
-        // I must be the last one to be cleaned...
-        terminate();
+
     }
 
     void set_is_ready(bool is_ready) noexcept { this->is_ready = is_ready; }
