@@ -27,6 +27,8 @@ local function convert_cifp_array(rawdata, cifp_arr)
             legs = {}
         }
         
+	print("NR legs: " .. cifp_arr.data[i-1].legs_len)
+
         for j=1,cifp_arr.data[i-1].legs_len do
             print("i=" .. i .. " j=" .. j)
             local l = cifp_arr.data[i-1].legs[j-1]

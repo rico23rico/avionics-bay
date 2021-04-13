@@ -269,6 +269,9 @@ void CIFPParser::parse_cifp_file(const std::string &arpt_id) {
 
     ifs.close();
     LOG << logger_level_t::INFO << "[CIFPParser] Total lines read from " << filename << ": " << line_no << ENDL;
+    
+    finalize_structures();
+    
 }
 
 void CIFPParser::parse_cifp_file_line(const std::string &arpt_id, int line_no, const std::string &line) {
@@ -320,7 +323,7 @@ int CIFPParser::create_new_cifp_data(std::unordered_map<std::string, std::vector
     new_proc._legs_arr_ref = legs_array_progressive++;
 
     vec_ref[arpt_id].push_back(new_proc);
-    return vec_ref[arpt_id].size();
+    return vec_ref[arpt_id].size()-1;
 }
 
 void CIFPParser::parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::string> &splitted) {
@@ -358,9 +361,8 @@ void CIFPParser::parse_sid(const std::string &arpt_id, int id, const std::vector
         return;     // Error line
     }
 
-
     auto index_str = arpt_id + ":" + splitted[F_NAME] + ":" + splitted[F_TRANS];  // For internal use only
-    
+
     int index;
     if (data_sid_idx.find(index_str) == data_sid_idx.end()) {
         // Not yet seen
@@ -377,17 +379,18 @@ void CIFPParser::parse_sid(const std::string &arpt_id, int id, const std::vector
     parse_leg(new_leg, splitted);
 
     legs_array[leg_array_id].push_back(std::move(new_leg));
-
 }
 
 void CIFPParser::parse_star(const std::string &arpt_id, int id, const std::vector<std::string> &splitted) {
+
     if (splitted.size() < F_LEG_CTR_FIX+1) {
         return;     // Error line
     }
 
 
     auto index_str = arpt_id + ":" + splitted[F_NAME] + ":" + splitted[F_TRANS];  // For internal use only
-    
+
+
     int index;
     if (data_star_idx.find(index_str) == data_star_idx.end()) {
         // Not yet seen
@@ -431,9 +434,39 @@ void CIFPParser::parse_appch(const std::string &arpt_id, int id, const std::vect
     parse_leg(new_leg, splitted);
 
     legs_array[leg_array_id].push_back(std::move(new_leg));
-
 }
 
+
+void CIFPParser::finalize_structures() {
+
+    /** SID **/
+    for (auto apt_it = data_sid.begin(); apt_it != data_sid.end(); apt_it++) {
+        for(auto sid_it = apt_it->second.begin(); sid_it != apt_it->second.end(); sid_it++) {
+            int ref = sid_it->_legs_arr_ref;
+            sid_it->legs = legs_array.at(ref).data();
+            sid_it->legs_len = legs_array.at(ref).size();
+        }
+    }
+
+    /** STAR **/
+    for (auto apt_it = data_star.begin(); apt_it != data_star.end(); apt_it++) {
+        for(auto star_it = apt_it->second.begin(); star_it != apt_it->second.end(); star_it++) {
+            int ref = star_it->_legs_arr_ref;
+            star_it->legs = legs_array.at(ref).data();
+            star_it->legs_len = legs_array.at(ref).size();
+        }
+    }
+
+    /** APPR **/
+    for (auto apt_it = data_app.begin(); apt_it != data_app.end(); apt_it++) {
+        for(auto app_it = apt_it->second.begin(); app_it != apt_it->second.end(); app_it++) {
+            int ref = app_it->_legs_arr_ref;
+            app_it->legs = legs_array.at(ref).data();
+            app_it->legs_len = legs_array.at(ref).size();
+        }
+    }
+
+}
 
 xpdata_cifp_t CIFPParser::get_full_cifp(const char* name) {
     xpdata_cifp_t to_ret;

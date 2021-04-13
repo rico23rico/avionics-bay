@@ -53,6 +53,8 @@ private:
 
     void parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::string> &splitted);
 
+    void finalize_structures();
+
     int create_new_cifp_data(std::unordered_map<std::string, std::vector<xpdata_cifp_data_t>> &vec_ref, const std::string &arpt_id, const std::vector<std::string> &splitted);
 
 };
