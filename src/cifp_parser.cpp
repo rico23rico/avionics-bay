@@ -22,6 +22,9 @@ constexpr int F_LEG_TURN = 9;
 constexpr int F_LEG_TYPE = 11;
 constexpr int F_LEG_TDV  = 12;
 
+constexpr int F_LEG_RECC_NAVAID = 13;
+
+
 constexpr int F_LEG_RADIUS = 17;
 constexpr int F_LEG_THETA  = 18;
 constexpr int F_LEG_RHO    = 19;
@@ -353,6 +356,11 @@ void CIFPParser::parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::st
     all_string_container.push_back(splitted[F_LEG_CTR_FIX]);
     new_leg.center_fix     = all_string_container.back().c_str();
     new_leg.center_fix_len = all_string_container.back().size();
+
+    all_string_container.push_back(splitted[F_LEG_RECC_NAVAID]);
+    new_leg.recomm_navaid     = all_string_container.back().c_str();
+    new_leg.recomm_navaid_len = all_string_container.back().size();
+
     
 }
 
