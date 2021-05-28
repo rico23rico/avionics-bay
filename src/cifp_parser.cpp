@@ -206,15 +206,15 @@ int safe_stoi(const std::string &str) {
     }
 }
 
-int safe_alt(const std::string &str) {
-    bool fl = false;
+int safe_alt(const std::string &str, bool &is_fl) {
+    is_fl = false;
     std::string copy_str = str;
     if (str[0] == 'F' && str[1] == 'L') {
-        fl = true;
+        is_fl = true;
         copy_str = str.substr(2);
     }
     try {
-        return std::stoi(str) * (fl ? 100 : 1);
+        return std::stoi(copy_str);
     } catch(...) {
         return 0;
     }
@@ -345,8 +345,8 @@ void CIFPParser::parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::st
     new_leg.rte_hold = safe_stoi(splitted[F_LEG_RTE_HOLD]);
     
     new_leg.cstr_alt_type  = compute_alt_type(splitted[F_LEG_ALT_TYPE]);
-    new_leg.cstr_altitude1 = safe_alt(splitted[F_LEG_ALT1]);
-    new_leg.cstr_altitude2 = safe_alt(splitted[F_LEG_ALT2]);
+    new_leg.cstr_altitude1 = safe_alt(splitted[F_LEG_ALT1], new_leg.cstr_altitude1_fl);
+    new_leg.cstr_altitude2 = safe_alt(splitted[F_LEG_ALT2], new_leg.cstr_altitude2_fl);
     
     new_leg.cstr_speed = safe_stoi(splitted[F_LEG_SPD]);
     new_leg.cstr_speed_type = new_leg.cstr_speed == 0 ? NAV_CIFP_CSTR_SPD_NONE : compute_spd_type(splitted[F_LEG_SPD_TYPE]);
