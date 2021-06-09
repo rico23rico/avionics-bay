@@ -42,6 +42,7 @@ private:
     
     int legs_array_progressive=0;
     std::unordered_map<int, std::vector<xpdata_cifp_leg_t>> legs_array;
+    std::vector<xpdata_cifp_rwy_data_t> rwys_array;
 
     void task(const std::string &arpt_id) noexcept;
     void parse_cifp_file(const std::string &arpt_id);
@@ -50,6 +51,7 @@ private:
     void parse_sid(const std::string &arpt_id, int line_no, const std::vector<std::string> &splitted);
     void parse_star(const std::string &arpt_id, int line_no, const std::vector<std::string> &splitted);
     void parse_appch(const std::string &arpt_id, int line_no, const std::vector<std::string> &splitted);
+    void parse_rwy(const std::string &arpt_id, int line_no, const std::vector<std::string> &splitted);
 
     void parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::string> &splitted);
 

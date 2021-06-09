@@ -189,16 +189,36 @@ typedef struct xpdata_cifp_data_t {
     
 } xpdata_cifp_data_t;
 
+typedef struct xpdata_cifp_rwy_data_t {
+    int ldg_threshold_alt;
+
+    const char *rwy_name;
+    int rwy_name_len;
+
+    const char *loc_ident;
+    int loc_ident_len;
+
+    char ils_category;
+
+} xpdata_cifp_rwy_data_t;
+
+
 typedef struct xpdata_cifp_array_t {
     const struct xpdata_cifp_data_t * data;
     int len;
 } xpdata_cifp_array_t;
+
+typedef struct xpdata_cifp_rwy_array_t {
+    const struct xpdata_cifp_rwy_data_t * data;
+    int len;
+} xpdata_cifp_rwy_array_t;
 
 
 typedef struct xpdata_cifp_t {
     xpdata_cifp_array_t sids;
     xpdata_cifp_array_t stars;
     xpdata_cifp_array_t apprs;
+    xpdata_cifp_rwy_array_t rwys;   // This contains extra info compared to no-cifp data
 } xpdata_cifp_t;
 
 

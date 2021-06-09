@@ -41,6 +41,11 @@ constexpr int F_LEG_ANGLE = 28;
 
 constexpr int F_LEG_CTR_FIX = 30;
 
+constexpr int RWY_ID = 0;
+constexpr int RWY_HEIGHT = 3;
+constexpr int RWY_LOC = 5;
+constexpr int RWY_CAT = 6;
+
 static std::list<std::string> all_string_container;
 
 namespace avionicsbay {
@@ -300,7 +305,8 @@ void CIFPParser::parse_cifp_file_line(const std::string &arpt_id, int line_no, c
             return; // Currently not implemented
         }
         else if (splitted[0].rfind("RWY:", 0) == 0) {
-            return; // Don't care already in FDR
+            int id = std::stoi(splitted[0].substr(6));
+            this->parse_rwy(splitted[0].substr(6), id, splitted);
         }
     } catch(const std::runtime_error &err) {
         LOG << logger_level_t::ERROR << "[CIFPParser] Line " << line_no << " error: " << err.what() << ENDL;
@@ -444,6 +450,28 @@ void CIFPParser::parse_appch(const std::string &arpt_id, int id, const std::vect
     legs_array[leg_array_id].push_back(std::move(new_leg));
 }
 
+void CIFPParser::parse_rwy(const std::string &rwy_id, int id, const std::vector<std::string> &splitted) {
+    if (splitted.size() < 9) {
+        return;     // Error line
+    }
+
+    xpdata_cifp_rwy_data_t rwy;
+
+    all_string_container.push_back(rwy_id);
+    rwy.rwy_name     = all_string_container.back().c_str();
+    rwy.rwy_name_len = all_string_container.back().size();
+
+    rwy.ldg_threshold_alt = std::stoi(splitted[RWY_HEIGHT]);
+
+    all_string_container.push_back(splitted[RWY_LOC]);
+    rwy.loc_ident     = all_string_container.back().c_str();
+    rwy.loc_ident_len = all_string_container.back().size();
+
+    rwy.ils_category = splitted[RWY_CAT].size() > 0 ? splitted[RWY_CAT][0] : ' ';
+
+    this->rwys_array.push_back(std::move(rwy));
+}
+
 
 void CIFPParser::finalize_structures() {
 
@@ -501,6 +529,15 @@ xpdata_cifp_t CIFPParser::get_full_cifp(const char* name) {
         to_ret.apprs.data = nullptr;
         to_ret.apprs.len = 0;
     }
+
+    try {
+        to_ret.rwys.data = rwys_array.data();
+        to_ret.rwys.len = rwys_array.size();
+    } catch(...) {
+        to_ret.rwys.data = nullptr;
+        to_ret.rwys.len = 0;
+    }
+
     return to_ret;
 }
 

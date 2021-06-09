@@ -154,6 +154,9 @@ typedef struct xpdata_cifp_leg_t {
     bool rte_hold_in_time;    // The rte_hold is in time not distance (MM.M where M = minutes)
     
     uint8_t cstr_alt_type;    // see constants
+    bool cstr_altitude1_fl;   // Is it in FL instead of baro ref altitude?
+    bool cstr_altitude2_fl;   // Is it in FL instead of baro ref altitude?
+
     uint32_t cstr_altitude1;
     uint32_t cstr_altitude2;
 
@@ -164,6 +167,9 @@ typedef struct xpdata_cifp_leg_t {
     
     const char *center_fix;
     int center_fix_len;
+    
+    const char *recomm_navaid;
+    int recomm_navaid_len;
     
 } xpdata_cifp_leg_t;
 
@@ -181,17 +187,38 @@ typedef struct xpdata_cifp_data_t {
     
 } xpdata_cifp_data_t;
 
+typedef struct xpdata_cifp_rwy_data_t {
+    int ldg_threshold_alt;
+
+    const char *rwy_name;
+    int rwy_name_len;
+
+    const char *loc_ident;
+    int loc_ident_len;
+
+    char ils_category;
+
+} xpdata_cifp_rwy_data_t;
+
+
 typedef struct xpdata_cifp_array_t {
     const struct xpdata_cifp_data_t * data;
     int len;
 } xpdata_cifp_array_t;
+
+typedef struct xpdata_cifp_rwy_array_t {
+    const struct xpdata_cifp_rwy_data_t * data;
+    int len;
+} xpdata_cifp_rwy_array_t;
 
 
 typedef struct xpdata_cifp_t {
     xpdata_cifp_array_t sids;
     xpdata_cifp_array_t stars;
     xpdata_cifp_array_t apprs;
+    xpdata_cifp_rwy_array_t rwys;   // This contains extra info compared to no-cifp data
 } xpdata_cifp_t;
+
 
 
 xpdata_navaid_array_t get_navaid_by_name  (xpdata_navaid_type_t, const char*);

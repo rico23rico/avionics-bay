@@ -18,21 +18,14 @@ local function convert_cifp_array(rawdata, cifp_arr)
     
     to_return = {}
     for i=1,cifp_arr.len do
-        print("i=" .. i .. " tot=" .. cifp_arr.len)
-	print("plen=" .. cifp_arr.data[i-1].proc_name_len)
-	print("tlen=" .. cifp_arr.data[i-1].trans_name_len)
         local new_dat =  {
             proc_name   = ffi.string(cifp_arr.data[i-1].proc_name,  cifp_arr.data[i-1].proc_name_len),
             trans_name  = ffi.string(cifp_arr.data[i-1].trans_name,  cifp_arr.data[i-1].trans_name_len),
             legs = {}
         }
         
-	print("NR legs: " .. cifp_arr.data[i-1].legs_len)
-
         for j=1,cifp_arr.data[i-1].legs_len do
-            print("i=" .. i .. " j=" .. j)
             local l = cifp_arr.data[i-1].legs[j-1]
-		print(l.leg_name, l.leg_name_len)
             table.insert(new_dat.legs, {
                 leg_name = ffi.string(l.leg_name, l.leg_name_len),
                 turn_direction = l.turn_direction,
@@ -134,11 +127,13 @@ local function load_avionicsbay()
     print("NR SIDS: " .. a.sids.len)
     print("NR STARS: " ..  a.stars.len)
     print("NR APPS: " .. a.apprs.len)
+    print("NR CIFP RWYS: " .. a.rwys.len)
+
+    print(a.rwys.data[0].loc_ident, a.rwys.data[0].loc_ident_len)
 
     local x = convert_cifp_array(false, a.sids)
     local x = convert_cifp_array(false, a.stars)
     local x = convert_cifp_array(false, a.apprs)
-    print(x)
 
     if true then
 	    return
