@@ -216,6 +216,8 @@ typedef struct xpdata_cifp_data_t {
 
     xpdata_cifp_leg_t *legs;
     int legs_len;
+    
+    uint32_t transition_altitude;
 
     int _legs_arr_ref;   // For internal use only
     

@@ -133,6 +133,8 @@ local function load_avionicsbay()
     local x = convert_cifp_array(false, a.stars)
     local x = convert_cifp_array(false, a.apprs)
 
+    print("TRANS ALT: " .. a.sids.data[1].transition_altitude);
+
     print(AvionicsBay.test())
     
     while AvionicsBay.c.get_nearest_apt() == nil do

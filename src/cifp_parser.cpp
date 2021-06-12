@@ -34,6 +34,7 @@ constexpr int F_LEG_RTE_HOLD = 21;
 constexpr int F_LEG_ALT_TYPE = 22;
 constexpr int F_LEG_ALT1 = 23;
 constexpr int F_LEG_ALT2 = 24;
+constexpr int F_LEG_TRANS_ALT = 25;
 
 constexpr int F_LEG_SPD_TYPE = 26;
 constexpr int F_LEG_SPD = 27;
@@ -331,6 +332,11 @@ int CIFPParser::create_new_cifp_data(std::unordered_map<std::string, std::vector
     legs_array[legs_array_progressive] = {};
     new_proc._legs_arr_ref = legs_array_progressive++;
 
+    try {
+        new_proc.transition_altitude = std::stoi(splitted[F_LEG_TRANS_ALT]);
+    } catch(const std::invalid_argument &) {
+        new_proc.transition_altitude = 0;
+    }
     vec_ref[arpt_id].push_back(new_proc);
     return vec_ref[arpt_id].size()-1;
 }
