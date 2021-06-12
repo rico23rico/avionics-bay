@@ -88,6 +88,10 @@ private:
     void parse_mora_file();
     void parse_mora_line(int line_no, const std::string &line);
 
+    void parse_hold_file();
+    void parse_hold_line(int line_no, const std::string &line);
+
+
 };
 
 }

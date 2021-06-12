@@ -19,6 +19,7 @@
 #define NAV_FILE_PATH  "Resources/default data/earth_nav.dat"
 #define FIX_FILE_PATH  "Resources/default data/earth_fix.dat"
 #define MORA_FILE_PATH "Resources/default data/earth_mora.dat"
+#define HOLD_FILE_PATH "Resources/default data/earth_hold.dat"
 #define APT_FILE_PATH "Resources/default scenery/default apt dat/Earth nav data/apt.dat"
 
 #define NEAREST_APT_UPDATE_SEC 2
@@ -189,6 +190,19 @@ void DataFileReader::worker() noexcept {
     }
     catch(...) {
         LOG << logger_level_t::CRIT << "[DataFileReader] MORA Unexpected exception." << ENDL;
+        return;
+    }
+
+    try {
+        parse_hold_file();
+        xpdata->index_holds();
+    } 
+    catch(const std::ifstream::failure &e) {
+        LOG << logger_level_t::ERROR << "[DataFileReader] HOLD I/O exception: " << e.what() << ENDL;
+        return;
+    }
+    catch(...) {
+        LOG << logger_level_t::CRIT << "[DataFileReader] HOLD Unexpected exception." << ENDL;
         return;
     }
 
@@ -812,6 +826,87 @@ void DataFileReader::parse_mora_line(int line_no, const std::string &line) {
         auto mora_value = std::stoi(splitted[i]);  // THis is in +123 format
         xpdata->push_mora(lat, lon+i-2, mora_value);
     }
+
+    } catch(const std::invalid_argument &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_mora.dat:" << line_no << ": invalid parameter (failed str->num conversion)." << ENDL;
+        return;
+    } catch(const std::out_of_range &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_mora.dat:" << line_no << ": invalid parameter (out-of-range str->num conversion)." << ENDL;
+        return;
+    }   
+}
+
+
+//**************************************************************************************************
+// HOLDS
+//**************************************************************************************************
+void DataFileReader::parse_hold_file() {
+    std::ifstream ifs;
+    ifs.exceptions(std::ifstream::badbit);
+    
+    std::string filename = xplane_directory + HOLD_FILE_PATH;
+    LOG << logger_level_t::INFO << "[DataFileReader] Trying to open " << filename << "..." << ENDL;
+    ifs.open(filename, std::ifstream::in);
+    
+    std::string line;
+    int line_no = 0;
+    while (!ifs.eof() && std::getline(ifs, line) && !this->stop) {
+        if (line.size() > 0 && line[0] != 'I' && (line[0] != '9' or line[1] != '9') && line.rfind("1140", 0) == std::string::npos) {
+            parse_hold_line(line_no, line);
+        }
+        line_no++;
+    }
+
+    ifs.close();
+    LOG << logger_level_t::INFO << "[DataFileReader] Total lines read from " << filename << ": " << line_no << ENDL;
+}
+
+void DataFileReader::parse_hold_line(int line_no, const std::string &line) {
+    auto splitted = str_explode(line, ' ');
+    if (splitted.size() < 11) {
+        return;     // Empty or invalid line
+    }
+
+    try {
+        // ID
+        all_string_container.emplace_back(splitted[0]);
+        const char* hold_id = all_string_container.back().c_str();
+        int hold_id_len = all_string_container.back().size();
+
+        // APT ID
+        all_string_container.emplace_back(splitted[2]);
+        const char* apt_id = all_string_container.back().c_str();
+        int apt_id_len = all_string_container.back().size();
+
+        uint8_t type_navaid = std::stoi(splitted[3]);
+        char turn_direction = splitted[7][0];
+
+        auto inbound_course= static_cast<uint16_t>(std::stof(splitted[4]) * 10);
+        auto leg_time      = static_cast<uint16_t>(std::stof(splitted[5]) * 60);
+        auto dme_value     = static_cast<uint16_t>(std::stof(splitted[6]) * 10);
+
+        uint32_t alt_min  = std::stoi(splitted[8]);
+        uint32_t alt_max  = std::stoi(splitted[9]);
+        uint16_t hold_spd = std::stoi(splitted[10]);
+
+        xpdata_hold_t new_hold = {
+            .id         = hold_id,
+            .id_len     = hold_id_len,
+            .apt_id     = apt_id,
+            .apt_id_len = apt_id_len,
+            .navaid_type = type_navaid,
+            .turn_direction = turn_direction,
+    
+            .inbound_course = inbound_course,
+            .leg_time = leg_time,
+            .dme_leg_length = dme_value,
+            
+            .max_altitude = alt_max,
+            .min_altitude = alt_min,
+            .holding_speed_limit = hold_spd
+        };
+
+        xpdata->push_hold(std::move(new_hold));
 
     } catch(const std::invalid_argument &e) {
         LOG << logger_level_t::WARN << "[DataFileReader] earth_mora.dat:" << line_no << ": invalid parameter (failed str->num conversion)." << ENDL;

@@ -114,8 +114,8 @@ local function load_avionicsbay()
     AvionicsBay.c.set_acf_coords(32.149534655, -110.83512209);
 
     print("WAIT")
---    while not AvionicsBay.c.xpdata_is_ready() do
---    end
+    while not AvionicsBay.c.xpdata_is_ready() do
+    end
     print("READY")
 
     AvionicsBay.c.load_cifp("LIML")
@@ -129,15 +129,10 @@ local function load_avionicsbay()
     print("NR APPS: " .. a.apprs.len)
     print("NR CIFP RWYS: " .. a.rwys.len)
 
-    print(a.rwys.data[0].loc_ident, a.rwys.data[0].loc_ident_len)
-
     local x = convert_cifp_array(false, a.sids)
     local x = convert_cifp_array(false, a.stars)
     local x = convert_cifp_array(false, a.apprs)
 
-    if true then
-	    return
-    end
     print(AvionicsBay.test())
     
     while AvionicsBay.c.get_nearest_apt() == nil do
@@ -171,6 +166,11 @@ local function load_avionicsbay()
 
     print("Random MORA: " .. AvionicsBay.c.get_mora(45.52, 10.23))
 
+    local holds_1 = AvionicsBay.c.get_hold_by_id("OVNEN")
+    local holds_2 = AvionicsBay.c.get_hold_by_apt_id("LIMC")
+
+    print("Nr HOLD#1: " .. holds_1.len)
+    print("Nr HOLD#2: " .. holds_2.len)
 
     AvionicsBay.c.terminate()
     

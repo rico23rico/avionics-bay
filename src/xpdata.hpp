@@ -111,7 +111,16 @@ public:
 /**************************************************************************************************/
     void push_mora(int16_t lat_idx, int16_t lon_idx, uint16_t value) noexcept;
     uint16_t get_mora(double lat, double lon) const noexcept;
-    
+
+/**************************************************************************************************/
+/** HOLDs **/
+/**************************************************************************************************/
+    void push_hold(xpdata_hold_t && hold) noexcept;
+    void index_holds() noexcept;
+    std::pair<const xpdata_hold_t* const*, size_t> get_holds_by_id(const std::string &id) const noexcept;
+    std::pair<const xpdata_hold_t* const*, size_t> get_holds_by_apt_id(const std::string &apt_id) const noexcept;
+
+
 private:
     std::shared_ptr<Logger> logger;
     std::atomic<bool> is_ready;
@@ -167,7 +176,14 @@ private:
 /** MORA **/
 /**************************************************************************************************/
     std::map<std::pair<int16_t, int16_t>, uint16_t> moras;
-    
+
+/**************************************************************************************************/
+/** HOLDs **/
+/**************************************************************************************************/
+    std::vector<xpdata_hold_t> holds_all;
+    std::unordered_map<std::string, std::vector<xpdata_hold_t*>> holds_by_id;
+    std::unordered_map<std::string, std::vector<xpdata_hold_t*>> holds_by_apt;
+
 };
 
 

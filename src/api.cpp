@@ -50,6 +50,14 @@ static xpdata_apt_array_t build_apt_array(std::pair<const xpdata_apt_t* const*, 
     return array;
 }
 
+static xpdata_hold_array_t build_hold_array(std::pair<const xpdata_hold_t* const*, size_t> std_vec) {
+    xpdata_hold_array_t array;
+    array.holds = std_vec.first;
+    array.len = std_vec.second;
+    return array;
+}
+
+
 /**************************************************************************************************/
 /** NAVAIDS **/
 /**************************************************************************************************/
@@ -149,6 +157,20 @@ EXPORT_DLL int get_mora(double lat, double lon) {
         return 0;   // If it doesn't exist
     }
 }
+
+/**************************************************************************************************/
+/** HOLDs **/
+/**************************************************************************************************/
+EXPORT_DLL xpdata_hold_array_t get_hold_by_id(const char* id) {
+    SANITY_CHECK_ARRAY();
+    return build_hold_array(xpdata->get_holds_by_id(id));
+}
+
+EXPORT_DLL xpdata_hold_array_t get_hold_by_apt_id(const char* apt_id) {
+    SANITY_CHECK_ARRAY();
+    return build_hold_array(xpdata->get_holds_by_apt_id(apt_id));
+}
+
 
 /**************************************************************************************************/
 /** CFP **/

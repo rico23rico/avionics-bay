@@ -133,6 +133,38 @@ typedef struct xpdata_apt_array_t {
     int len;
 } xpdata_apt_array_t;
 
+
+/** HOLDS **/
+typedef struct xpdata_hold_t {
+    const char *id;
+    int id_len;
+    
+    const char *apt_id; // Airport id, ENRT if enroute
+    int apt_id_len;
+    
+    uint8_t navaid_type;    // 11 fix, 2 ndb, 3 VHF (vor, tacan, or dme)
+    char turn_direction;    // L or R
+    
+    uint16_t inbound_course;// Inbound magnetic course * 10
+    uint16_t leg_time;      // Leg time in seconds. 0 for DME holdings
+    uint16_t dme_leg_length;// Leg length in nautical miles * 10
+    
+    uint32_t max_altitude;  // in feet or 0
+    uint32_t min_altitude;  // in feet or 0
+
+    uint16_t holding_speed_limit;   // in knots or 0
+    
+} xpdata_hold_t;
+
+typedef struct xpdata_hold_array_t {
+    const struct xpdata_hold_t * const * holds;
+    int len;
+} xpdata_hold_array_t;
+
+
+/** Triangulation **/
+
+
 typedef struct xpdata_triangulation_t {
     const xpdata_coords_t* points;
     int points_len;
@@ -220,6 +252,5 @@ typedef struct xpdata_cifp_t {
     xpdata_cifp_array_t apprs;
     xpdata_cifp_rwy_array_t rwys;   // This contains extra info compared to no-cifp data
 } xpdata_cifp_t;
-
 
 #endif // DATA_TYPES_H
