@@ -16,6 +16,7 @@
 
 #define LOG *this->logger << STARTL
 
+#define AWY_FILE_PATH  "Resources/default data/earth_awy.dat"
 #define NAV_FILE_PATH  "Resources/default data/earth_nav.dat"
 #define FIX_FILE_PATH  "Resources/default data/earth_fix.dat"
 #define MORA_FILE_PATH "Resources/default data/earth_mora.dat"
@@ -203,6 +204,19 @@ void DataFileReader::worker() noexcept {
     }
     catch(...) {
         LOG << logger_level_t::CRIT << "[DataFileReader] HOLD Unexpected exception." << ENDL;
+        return;
+    }
+
+    try {
+        parse_awy_file();
+        xpdata->index_awys();
+    } 
+    catch(const std::ifstream::failure &e) {
+        LOG << logger_level_t::ERROR << "[DataFileReader] AWY I/O exception: " << e.what() << ENDL;
+        return;
+    }
+    catch(...) {
+        LOG << logger_level_t::CRIT << "[DataFileReader] AWY Unexpected exception." << ENDL;
         return;
     }
 
@@ -851,7 +865,7 @@ void DataFileReader::parse_hold_file() {
     std::string line;
     int line_no = 0;
     while (!ifs.eof() && std::getline(ifs, line) && !this->stop) {
-        if (line.size() > 0 && line[0] != 'I' && (line[0] != '9' or line[1] != '9') && line.rfind("1140", 0) == std::string::npos) {
+        if (line.size() > 0 && line[0] != 'I' && (line[0] != '9' or line[1] != '9') && line.rfind("11", 0) == std::string::npos) {
             parse_hold_line(line_no, line);
         }
         line_no++;
@@ -909,10 +923,110 @@ void DataFileReader::parse_hold_line(int line_no, const std::string &line) {
         xpdata->push_hold(std::move(new_hold));
 
     } catch(const std::invalid_argument &e) {
-        LOG << logger_level_t::WARN << "[DataFileReader] earth_mora.dat:" << line_no << ": invalid parameter (failed str->num conversion)." << ENDL;
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_hold.dat:" << line_no << ": invalid parameter (failed str->num conversion)." << ENDL;
         return;
     } catch(const std::out_of_range &e) {
-        LOG << logger_level_t::WARN << "[DataFileReader] earth_mora.dat:" << line_no << ": invalid parameter (out-of-range str->num conversion)." << ENDL;
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_hold.dat:" << line_no << ": invalid parameter (out-of-range str->num conversion)." << ENDL;
+        return;
+    }   
+}
+
+//**************************************************************************************************
+// AWYs
+//**************************************************************************************************
+void DataFileReader::parse_awy_file() {
+    std::ifstream ifs;
+    ifs.exceptions(std::ifstream::badbit);
+    
+    std::string filename = xplane_directory + AWY_FILE_PATH;
+    LOG << logger_level_t::INFO << "[DataFileReader] Trying to open " << filename << "..." << ENDL;
+    ifs.open(filename, std::ifstream::in);
+    
+    std::string line;
+    int line_no = 0;
+    while (!ifs.eof() && std::getline(ifs, line) && !this->stop) {
+        if (line.size() > 0 && line[0] != 'I' && (line[0] != '9' or line[1] != '9') && line.rfind("11", 0) == std::string::npos) {
+            parse_awy_line(line_no, line);
+        }
+        line_no++;
+    }
+
+    ifs.close();
+    LOG << logger_level_t::INFO << "[DataFileReader] Total lines read from " << filename << ": " << line_no << ENDL;
+}
+
+void DataFileReader::parse_awy_line(int line_no, const std::string &line) {
+    auto splitted = str_explode(line, ' ');
+    if (splitted.size() < 11) {
+        return;     // Empty or invalid line
+    }
+
+    try {
+        
+        all_string_container.emplace_back(splitted[0]);
+        const char* begin_wpt_id = all_string_container.back().c_str();
+        int begin_wpt_id_len = all_string_container.back().size();
+
+        uint8_t begin_wpt_type = std::stoi(splitted[2]);
+
+        all_string_container.emplace_back(splitted[3]);
+        const char* end_wpt_id = all_string_container.back().c_str();
+        int end_wpt_id_len = all_string_container.back().size();
+
+        uint8_t end_wpt_type   = std::stoi(splitted[5]);
+
+        char direction = splitted[6][0];
+
+        uint16_t base_alt = std::stoi(splitted[8]);
+        uint16_t top_alt  = std::stoi(splitted[9]);
+
+        all_string_container.emplace_back(splitted[10]);
+        const char* awy_id = all_string_container.back().c_str();
+        int awy_id_len = all_string_container.back().size();
+
+        if (direction == 'N' || direction == 'F') {
+            xpdata_awy_t awy = {
+                .id            = awy_id,
+                .id_len        = awy_id_len,
+
+                .start_wpt     = begin_wpt_id,
+                .start_wpt_len = begin_wpt_id_len,
+                .start_wpt_type= begin_wpt_type,
+
+                .end_wpt       = end_wpt_id,
+                .end_wpt_len   = end_wpt_id_len,
+                .end_wpt_type  = end_wpt_type,
+
+                .base_alt      = base_alt,
+                .top_alt       = top_alt
+            };
+            xpdata->push_awy(std::move(awy));
+        }
+
+        if (direction == 'N' || direction == 'B') {
+            xpdata_awy_t awy = {
+                .id            = awy_id,
+                .id_len        = awy_id_len,
+
+                .start_wpt     = end_wpt_id,
+                .start_wpt_len = end_wpt_id_len,
+                .start_wpt_type= end_wpt_type,
+
+                .end_wpt       = begin_wpt_id,
+                .end_wpt_len   = begin_wpt_id_len,
+                .end_wpt_type  = begin_wpt_type,
+
+                .base_alt      = base_alt,
+                .top_alt       = top_alt
+            };
+            xpdata->push_awy(std::move(awy));
+        }
+
+    } catch(const std::invalid_argument &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_awy.dat:" << line_no << ": invalid parameter (failed str->num conversion)." << ENDL;
+        return;
+    } catch(const std::out_of_range &e) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_awy.dat:" << line_no << ": invalid parameter (out-of-range str->num conversion)." << ENDL;
         return;
     }   
 }

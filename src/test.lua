@@ -174,6 +174,14 @@ local function load_avionicsbay()
     print("Nr HOLD#1: " .. holds_1.len)
     print("Nr HOLD#2: " .. holds_2.len)
 
+    local awy_1 = AvionicsBay.c.get_awy_by_start_wpt("BOPUT")
+    local awy_2 = AvionicsBay.c.get_awy_by_end_wpt("CANEL")
+    local awy_3 = AvionicsBay.c.get_awy_by_id("NCAN")
+    print("Nr AWY#1: " .. awy_1.len)
+    print("Nr AWY#1: " .. awy_2.len)
+    print("Nr AWY#1: " .. awy_3.len)
+
+
     AvionicsBay.c.terminate()
     
 end

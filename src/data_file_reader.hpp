@@ -91,6 +91,8 @@ private:
     void parse_hold_file();
     void parse_hold_line(int line_no, const std::string &line);
 
+    void parse_awy_file();
+    void parse_awy_line(int line_no, const std::string &line);
 
 };
 

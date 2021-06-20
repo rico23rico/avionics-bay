@@ -57,6 +57,12 @@ static xpdata_hold_array_t build_hold_array(std::pair<const xpdata_hold_t* const
     return array;
 }
 
+static xpdata_awy_array_t build_awy_array(std::pair<const xpdata_awy_t* const*, size_t> std_vec) {
+    xpdata_awy_array_t array;
+    array.awys = std_vec.first;
+    array.len = std_vec.second;
+    return array;
+}
 
 /**************************************************************************************************/
 /** NAVAIDS **/
@@ -169,6 +175,24 @@ EXPORT_DLL xpdata_hold_array_t get_hold_by_id(const char* id) {
 EXPORT_DLL xpdata_hold_array_t get_hold_by_apt_id(const char* apt_id) {
     SANITY_CHECK_ARRAY();
     return build_hold_array(xpdata->get_holds_by_apt_id(apt_id));
+}
+
+/**************************************************************************************************/
+/** AWYs **/
+/**************************************************************************************************/
+EXPORT_DLL xpdata_awy_array_t get_awy_by_id(const char* id) {
+    SANITY_CHECK_ARRAY();
+    return build_awy_array(xpdata->get_awys_by_id(id));
+}
+
+EXPORT_DLL xpdata_awy_array_t get_awy_by_start_wpt(const char* wpt_id) {
+    SANITY_CHECK_ARRAY();
+    return build_awy_array(xpdata->get_awys_by_start_wpt(wpt_id));
+}
+
+EXPORT_DLL xpdata_awy_array_t get_awy_by_end_wpt(const char* wpt_id) {
+    SANITY_CHECK_ARRAY();
+    return build_awy_array(xpdata->get_awys_by_end_wpt(wpt_id));
 }
 
 

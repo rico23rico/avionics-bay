@@ -31,6 +31,10 @@ extern "C" {
     EXPORT_DLL xpdata_hold_array_t get_hold_by_id(const char* id);
     EXPORT_DLL xpdata_hold_array_t get_hold_by_apt_id(const char* apt_id);
 
+    EXPORT_DLL xpdata_awy_array_t get_awy_by_id(const char* id);
+    EXPORT_DLL xpdata_awy_array_t get_awy_by_start_wpt(const char* wpt_id);
+    EXPORT_DLL xpdata_awy_array_t get_awy_by_end_wpt(const char* wpt_id);
+
     EXPORT_DLL xpdata_triangulation_t triangulate(const xpdata_apt_node_array_t* array);
 
     EXPORT_DLL xpdata_cifp_t get_cifp(const char* airport_id);

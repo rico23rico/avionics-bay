@@ -517,5 +517,69 @@ std::pair<const xpdata_hold_t* const*, size_t> XPData::get_holds_by_apt_id(const
     }
 }
 
+/**************************************************************************************************/
+/** AWYs **/
+/**************************************************************************************************/
+
+void XPData::push_awy(xpdata_awy_t && awy) noexcept {
+    this->awys_all.push_back(std::move(awy));
+}
+
+void XPData::index_awys() noexcept {
+
+    LOG << logger_level_t::DEBUG << "[XPData] Indexing AWYs..." << ENDL;
+
+    for(int i=0; i < awys_all.size(); i++) {
+        auto element_ptr = &awys_all[i];
+        
+        const auto id_str       = std::string(element_ptr->id);
+        const auto start_wpt_str= std::string(element_ptr->start_wpt);
+        const auto end_wpt_str  = std::string(element_ptr->end_wpt);
+
+        if (awys_by_id.count(id_str) == 1) {
+            awys_by_id.at(id_str).push_back(element_ptr);
+        } else {
+            awys_by_id[id_str].push_back(element_ptr);
+        }
+
+        if (awys_by_start.count(start_wpt_str) == 1) {
+            awys_by_start.at(start_wpt_str).push_back(element_ptr);
+        } else {
+            awys_by_start[start_wpt_str].push_back(element_ptr);
+        }
+
+        if (awys_by_end.count(end_wpt_str) == 1) {
+            awys_by_end.at(end_wpt_str).push_back(element_ptr);
+        } else {
+            awys_by_end[end_wpt_str].push_back(element_ptr);
+        }
+    }
+}
+
+std::pair<const xpdata_awy_t* const*, size_t> XPData::get_awys_by_id(const std::string &id) const noexcept {
+    try {
+        const auto & element = this->awys_by_id.at(id);
+        return std::pair<const xpdata_awy_t* const*, size_t> (element.data(), element.size());
+    } catch(...) {
+        return std::pair<const xpdata_awy_t* const*, size_t> (nullptr, 0);
+    }
+}
+std::pair<const xpdata_awy_t* const*, size_t> XPData::get_awys_by_start_wpt(const std::string &wpt_id) const noexcept {
+    try {
+        const auto & element = this->awys_by_start.at(wpt_id);
+        return std::pair<const xpdata_awy_t* const*, size_t> (element.data(), element.size());
+    } catch(...) {
+        return std::pair<const xpdata_awy_t* const*, size_t> (nullptr, 0);
+    }
+}
+std::pair<const xpdata_awy_t* const*, size_t> XPData::get_awys_by_end_wpt(const std::string &wpt_id) const noexcept {
+    try {
+        const auto & element = this->awys_by_end.at(wpt_id);
+        return std::pair<const xpdata_awy_t* const*, size_t> (element.data(), element.size());
+    } catch(...) {
+        return std::pair<const xpdata_awy_t* const*, size_t> (nullptr, 0);
+    }
+}
+
 
 } // namespace avionicsbay

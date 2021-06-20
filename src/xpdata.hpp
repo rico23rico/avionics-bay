@@ -120,6 +120,15 @@ public:
     std::pair<const xpdata_hold_t* const*, size_t> get_holds_by_id(const std::string &id) const noexcept;
     std::pair<const xpdata_hold_t* const*, size_t> get_holds_by_apt_id(const std::string &apt_id) const noexcept;
 
+/**************************************************************************************************/
+/** AWYs **/
+/**************************************************************************************************/
+    void push_awy(xpdata_awy_t && awy) noexcept;
+    void index_awys() noexcept;
+    std::pair<const xpdata_awy_t* const*, size_t> get_awys_by_id(const std::string &id) const noexcept;
+    std::pair<const xpdata_awy_t* const*, size_t> get_awys_by_start_wpt(const std::string &wpt_id) const noexcept;
+    std::pair<const xpdata_awy_t* const*, size_t> get_awys_by_end_wpt(const std::string &wpt_id) const noexcept;
+
 
 private:
     std::shared_ptr<Logger> logger;
@@ -183,6 +192,15 @@ private:
     std::vector<xpdata_hold_t> holds_all;
     std::unordered_map<std::string, std::vector<xpdata_hold_t*>> holds_by_id;
     std::unordered_map<std::string, std::vector<xpdata_hold_t*>> holds_by_apt;
+
+/**************************************************************************************************/
+/** AWYs **/
+/**************************************************************************************************/
+    std::vector<xpdata_awy_t> awys_all;
+    std::unordered_map<std::string, std::vector<xpdata_awy_t*>> awys_by_id;
+    std::unordered_map<std::string, std::vector<xpdata_awy_t*>> awys_by_start;
+    std::unordered_map<std::string, std::vector<xpdata_awy_t*>> awys_by_end;
+
 
 };
 

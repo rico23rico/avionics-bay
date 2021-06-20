@@ -157,7 +157,29 @@ return [[
         int len;
     } xpdata_hold_array_t;
     
+    /** AWYS **/
+    typedef struct xpdata_awy_t {
+        const char *id;
+        int id_len;
     
+        const char *start_wpt;
+        int start_wpt_len;
+        uint8_t start_wpt_type;   // 11 fix, 2 ndb, 3 VHF (vor, tacan, or dme)
+    
+        const char *end_wpt;
+        int end_wpt_len;
+        uint8_t end_wpt_type;     // 11 fix, 2 ndb, 3 VHF (vor, tacan, or dme)
+    
+        uint16_t base_alt;        // in feet * 100
+        uint16_t top_alt;         // in feet * 100
+    
+    } xpdata_awy_t;
+    
+    typedef struct xpdata_awy_array_t {
+        const struct xpdata_awy_t * const * awys;
+        int len;
+    } xpdata_awy_array_t;
+
     /** Triangulation **/
     
     
@@ -272,6 +294,10 @@ xpdata_coords_t get_route_pos(const xpdata_apt_t *apt, int route_id);
 
 xpdata_hold_array_t get_hold_by_id(const char* id);
 xpdata_hold_array_t get_hold_by_apt_id(const char* apt_id);
+
+xpdata_awy_array_t get_awy_by_id(const char* id);
+xpdata_awy_array_t get_awy_by_start_wpt(const char* wpt_id);
+xpdata_awy_array_t get_awy_by_end_wpt(const char* wpt_id);
 
 xpdata_triangulation_t triangulate(const xpdata_apt_node_array_t* array);
 
