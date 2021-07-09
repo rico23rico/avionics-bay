@@ -18,6 +18,8 @@ constexpr int F_NAME     = 2;
 constexpr int F_TRANS    = 3;
 constexpr int F_LEG_NAME = 4;
 
+constexpr int F_LEG_FLAGS = 8;
+
 constexpr int F_LEG_TURN = 9;
 constexpr int F_LEG_TYPE = 11;
 constexpr int F_LEG_TDV  = 12;
@@ -373,7 +375,35 @@ void CIFPParser::parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::st
     new_leg.recomm_navaid     = all_string_container.back().c_str();
     new_leg.recomm_navaid_len = all_string_container.back().size();
 
+    new_leg.fly_over_wpt = false;
+    new_leg.approach_iaf = false;
+    new_leg.approach_if  = false;
+    new_leg.approach_faf = false;
+    new_leg.holding_fix  = false;
     
+    const std::string &flags = splitted[F_LEG_FLAGS];
+    if(flags.size() >=2) {
+        if (flags[1] == 'B' || flags[1] == 'Y') {
+            new_leg.fly_over_wpt = true;
+        }
+    } 
+    if(flags.size() >=4) {
+        if (flags[3] == 'A') {
+            new_leg.approach_iaf = true;
+        } else if (flags[3] == 'B') {
+            new_leg.approach_if = true;
+        } else if (flags[3] == 'C') {
+            new_leg.approach_iaf = true;
+            new_leg.holding_fix = true;
+        } else if (flags[3] == 'D') {
+            new_leg.approach_iaf = true;
+            new_leg.approach_faf = true;
+        } else if (flags[3] == 'F' || flags[3] == 'I') {
+            new_leg.approach_faf = true;
+        } else if (flags[3] == 'H') {
+            new_leg.holding_fix = true;
+        }
+    }
 }
 
 void CIFPParser::parse_sid(const std::string &arpt_id, int id, const std::vector<std::string> &splitted) {
