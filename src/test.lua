@@ -16,7 +16,7 @@ local function convert_cifp_array(rawdata, cifp_arr)
         }
     end
     
-    to_return = {}
+    local to_return = {}
     for i=1,cifp_arr.len do
         local new_dat =  {
             proc_name   = ffi.string(cifp_arr.data[i-1].proc_name,  cifp_arr.data[i-1].proc_name_len),
@@ -176,10 +176,10 @@ local function load_avionicsbay()
 
     local awy_1 = AvionicsBay.c.get_awy_by_start_wpt("BOPUT")
     local awy_2 = AvionicsBay.c.get_awy_by_end_wpt("CANEL")
-    local awy_3 = AvionicsBay.c.get_awy_by_id("NCAN")
+    local awy_3 = AvionicsBay.c.get_awy_by_id("L50")
     print("Nr AWY#1: " .. awy_1.len)
-    print("Nr AWY#1: " .. awy_2.len)
-    print("Nr AWY#1: " .. awy_3.len)
+    print("Nr AWY#2: " .. awy_2.len)
+    print("Nr AWY#3: " .. awy_3.len)
 
 
     AvionicsBay.c.terminate()

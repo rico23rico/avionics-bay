@@ -40,6 +40,8 @@ private:
     std::shared_ptr<XPData> xpdata;
     std::string xplane_directory;
     
+    std::string prev_awy_double_entry;
+
     xpdata_apt_t *detail_arpt = nullptr;    // The airport to load the details
     
     std::thread my_thread;

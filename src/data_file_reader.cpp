@@ -945,7 +945,7 @@ void DataFileReader::parse_awy_file() {
     std::string line;
     int line_no = 0;
     while (!ifs.eof() && std::getline(ifs, line) && !this->stop) {
-        if (line.size() > 0 && line[0] != 'I' && (line[0] != '9' or line[1] != '9') && line.rfind("11", 0) == std::string::npos) {
+        if (line.size() > 2 && (line[0] != '9' or line[1] != '9') && line.rfind("11", 0) == std::string::npos) {
             parse_awy_line(line_no, line);
         }
         line_no++;
@@ -961,8 +961,14 @@ void DataFileReader::parse_awy_line(int line_no, const std::string &line) {
         return;     // Empty or invalid line
     }
 
+    std::string check = splitted[0] + "-" + splitted[3] +  "-" + splitted[10];
+    if (check == this->prev_awy_double_entry) {
+        return; // Double entry
+    }
+
+    prev_awy_double_entry = check;
     try {
-        
+
         all_string_container.emplace_back(splitted[0]);
         const char* begin_wpt_id = all_string_container.back().c_str();
         int begin_wpt_id_len = all_string_container.back().size();
@@ -980,47 +986,53 @@ void DataFileReader::parse_awy_line(int line_no, const std::string &line) {
         uint16_t base_alt = std::stoi(splitted[8]);
         uint16_t top_alt  = std::stoi(splitted[9]);
 
-        all_string_container.emplace_back(splitted[10]);
-        const char* awy_id = all_string_container.back().c_str();
-        int awy_id_len = all_string_container.back().size();
+        auto awy_splitted = str_explode(splitted[10], '-');
 
-        if (direction == 'N' || direction == 'F') {
-            xpdata_awy_t awy = {
-                .id            = awy_id,
-                .id_len        = awy_id_len,
+        for (const auto &awy_id_s : awy_splitted) {
 
-                .start_wpt     = begin_wpt_id,
-                .start_wpt_len = begin_wpt_id_len,
-                .start_wpt_type= begin_wpt_type,
+            all_string_container.emplace_back(awy_id_s);
+            const char* awy_id = all_string_container.back().c_str();
+            int awy_id_len = all_string_container.back().size();
 
-                .end_wpt       = end_wpt_id,
-                .end_wpt_len   = end_wpt_id_len,
-                .end_wpt_type  = end_wpt_type,
+            if (direction == 'N' || direction == 'F') {
+                xpdata_awy_t awy = {
+                    .id            = awy_id,
+                    .id_len        = awy_id_len,
 
-                .base_alt      = base_alt,
-                .top_alt       = top_alt
-            };
-            xpdata->push_awy(std::move(awy));
+                    .start_wpt     = begin_wpt_id,
+                    .start_wpt_len = begin_wpt_id_len,
+                    .start_wpt_type= begin_wpt_type,
+
+                    .end_wpt       = end_wpt_id,
+                    .end_wpt_len   = end_wpt_id_len,
+                    .end_wpt_type  = end_wpt_type,
+
+                    .base_alt      = base_alt,
+                    .top_alt       = top_alt
+                };
+                xpdata->push_awy(std::move(awy));
+            }
+
+            if (direction == 'N' || direction == 'B') {
+                xpdata_awy_t awy = {
+                    .id            = awy_id,
+                    .id_len        = awy_id_len,
+
+                    .start_wpt     = end_wpt_id,
+                    .start_wpt_len = end_wpt_id_len,
+                    .start_wpt_type= end_wpt_type,
+
+                    .end_wpt       = begin_wpt_id,
+                    .end_wpt_len   = begin_wpt_id_len,
+                    .end_wpt_type  = begin_wpt_type,
+
+                    .base_alt      = base_alt,
+                    .top_alt       = top_alt
+                };
+                xpdata->push_awy(std::move(awy));
+            }
         }
 
-        if (direction == 'N' || direction == 'B') {
-            xpdata_awy_t awy = {
-                .id            = awy_id,
-                .id_len        = awy_id_len,
-
-                .start_wpt     = end_wpt_id,
-                .start_wpt_len = end_wpt_id_len,
-                .start_wpt_type= end_wpt_type,
-
-                .end_wpt       = begin_wpt_id,
-                .end_wpt_len   = begin_wpt_id_len,
-                .end_wpt_type  = begin_wpt_type,
-
-                .base_alt      = base_alt,
-                .top_alt       = top_alt
-            };
-            xpdata->push_awy(std::move(awy));
-        }
 
     } catch(const std::invalid_argument &e) {
         LOG << logger_level_t::WARN << "[DataFileReader] earth_awy.dat:" << line_no << ": invalid parameter (failed str->num conversion)." << ENDL;
