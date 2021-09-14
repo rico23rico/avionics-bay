@@ -279,11 +279,16 @@ void DataFileReader::parse_navaids_file() {
 void DataFileReader::parse_navaids_file_line(int line_no, const std::string &line) {
     auto splitted = str_explode(line, ' ');
     
-    if (splitted.size() < 5) {
+    if (splitted.size() < 10) {
         LOG << logger_level_t::WARN << "[DataFileReader] earth_nav.dat:" << line_no << ": invalid nr. parameters." << ENDL;
         return;     // Something invalid here
     }
     
+    if(splitted[9].size() < 2) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_nav.dat:" << line_no << ": invalid size param region code." << ENDL;
+        return;     // Something invalid here
+    }
+
     try {
 
         // Read the first field: line id
@@ -300,7 +305,7 @@ void DataFileReader::parse_navaids_file_line(int line_no, const std::string &lin
         all_string_container.push_back(splitted[7]);
         const char* icao_name = all_string_container.back().c_str();
         int icao_name_len = all_string_container.back().size();
-        
+
         xpdata_navaid_t navaid = {
             .id       = icao_name,
             .id_len   = icao_name_len,
@@ -313,9 +318,10 @@ void DataFileReader::parse_navaids_file_line(int line_no, const std::string &lin
             },
             .altitude = std::stoi(splitted[3]),
             .frequency = static_cast<unsigned>(std::stoi(splitted[4])),
-            .is_coupled_dme = false,
             .category = std::stoi(splitted[5]),
-            .bearing  = static_cast<int>(std::stod(splitted[6]) * 1000)
+            .bearing  = static_cast<int>(std::stod(splitted[6]) * 1000),
+            .region_code = {splitted[9][0],splitted[9][1]},
+            .is_coupled_dme = false,
         };
         
         if (type == NAV_ID_DME) {
@@ -366,7 +372,12 @@ void DataFileReader::parse_fixes_file_line(int line_no, const std::string &line)
         LOG << logger_level_t::WARN << "[DataFileReader] earth_fix.dat:" << line_no << ": invalid nr. parameters." << ENDL;
         return;     // Something invalid here
     }
-    
+
+    if (splitted[4].size() < 2) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_fix.dat:" << line_no << ": invalid region code." << ENDL;
+        return;     // Something invalid here
+    }
+
     try {
         
         all_string_container.push_back(splitted[2]);
@@ -380,6 +391,7 @@ void DataFileReader::parse_fixes_file_line(int line_no, const std::string &line)
                 .lat = std::stod(splitted[0]),
                 .lon = std::stod(splitted[1])
             },
+            .region_code = {splitted[4][0],splitted[4][1]},
         };
     
         xpdata->push_fix(std::move(fix));
@@ -881,6 +893,10 @@ void DataFileReader::parse_hold_line(int line_no, const std::string &line) {
         return;     // Empty or invalid line
     }
 
+    if (splitted[1].size() < 2) {
+        return;     // Empty or invalid line
+    }
+
     try {
         // ID
         all_string_container.emplace_back(splitted[0]);
@@ -910,7 +926,9 @@ void DataFileReader::parse_hold_line(int line_no, const std::string &line) {
             .apt_id_len = apt_id_len,
             .navaid_type = type_navaid,
             .turn_direction = turn_direction,
-    
+
+            .region_code = {splitted[1][0],splitted[1][1]},
+
             .inbound_course = inbound_course,
             .leg_time = leg_time,
             .dme_leg_length = dme_value,
@@ -960,6 +978,13 @@ void DataFileReader::parse_awy_line(int line_no, const std::string &line) {
     if (splitted.size() < 11) {
         return;     // Empty or invalid line
     }
+    if (splitted[1].size() < 2) {
+        return;     // Invalid region code
+    }
+    if (splitted[4].size() < 2) {
+        return;     // Invalid region code
+    }
+
 
     std::string check = splitted[0] + "-" + splitted[3] +  "-" + splitted[10];
     if (check == this->prev_awy_double_entry) {
@@ -1002,10 +1027,12 @@ void DataFileReader::parse_awy_line(int line_no, const std::string &line) {
                     .start_wpt     = begin_wpt_id,
                     .start_wpt_len = begin_wpt_id_len,
                     .start_wpt_type= begin_wpt_type,
+                    .start_wpt_region_code = {splitted[1][0], splitted[1][1]},
 
                     .end_wpt       = end_wpt_id,
                     .end_wpt_len   = end_wpt_id_len,
                     .end_wpt_type  = end_wpt_type,
+                    .end_wpt_region_code  = {splitted[4][0], splitted[4][1]},
 
                     .base_alt      = base_alt,
                     .top_alt       = top_alt

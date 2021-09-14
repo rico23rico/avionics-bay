@@ -20,9 +20,10 @@ typedef struct xpdata_navaid_t {
     xpdata_coords_t coords;
     int altitude;
     unsigned int frequency;
-    bool is_coupled_dme;    // True if the vor is coupled with DME
     int category;           // Category (also range in nm)
     int bearing;            // Check XP documentation, multiplied by 1000
+    char region_code[2];
+    bool is_coupled_dme;    // True if the vor is coupled with DME
 } xpdata_navaid_t;
 
 typedef struct xpdata_navaid_array_t {
@@ -35,6 +36,7 @@ typedef struct xpdata_fix_t {
     const char *id;         // e.g., ROMEO
     int id_len;
     xpdata_coords_t coords;
+    char region_code[2];
 } xpdata_fix_t;
 
 typedef struct xpdata_fix_array_t {
@@ -138,13 +140,15 @@ typedef struct xpdata_apt_array_t {
 typedef struct xpdata_hold_t {
     const char *id;
     int id_len;
-    
+
     const char *apt_id; // Airport id, ENRT if enroute
     int apt_id_len;
     
     uint8_t navaid_type;    // 11 fix, 2 ndb, 3 VHF (vor, tacan, or dme)
     char turn_direction;    // L or R
-    
+
+    char region_code[2];
+
     uint16_t inbound_course;// Inbound magnetic course * 10
     uint16_t leg_time;      // Leg time in seconds. 0 for DME holdings
     uint16_t dme_leg_length;// Leg length in nautical miles * 10
@@ -170,10 +174,12 @@ typedef struct xpdata_awy_t {
     const char *start_wpt;
     int start_wpt_len;
     uint8_t start_wpt_type;   // 11 fix, 2 ndb, 3 VHF (vor, tacan, or dme)
+    char start_wpt_region_code[2];
 
     const char *end_wpt;
     int end_wpt_len;
     uint8_t end_wpt_type;     // 11 fix, 2 ndb, 3 VHF (vor, tacan, or dme)
+    char end_wpt_region_code[2];
 
     uint16_t base_alt;        // in feet * 100
     uint16_t top_alt;         // in feet * 100
@@ -215,6 +221,9 @@ typedef struct xpdata_cifp_leg_t {
     uint16_t outb_mag;        // Outbound Magnetic Course in degees * 10
     uint16_t rte_hold;        // Route distance / Hold time/dist - distance in nm * 10 
     uint16_t vpath_angle;   // Only for descent, to be considered as negative
+
+    char region_code_ctr_fix[2];
+    char region_code_rec_navaid[2];
 
 
     uint8_t leg_type;         // 1 - IF, 2 - TF, 3 - CF, 4 - DF, 5 - FA, 6 - FC, 7 - FD, 8 - FM, 9 - CA, 10 - CD, 11 - CI, 12 - CR, 13 - RF, 14 - AF, 15 - VA, 16 - VD, 17 - VI, 18 - VM, 19 - VR, 20 - PI, 21 - HA, 22 - HF, 23 - HM

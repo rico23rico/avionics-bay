@@ -370,11 +370,22 @@ void CIFPParser::parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::st
     all_string_container.push_back(splitted[F_LEG_CTR_FIX]);
     new_leg.center_fix     = all_string_container.back().c_str();
     new_leg.center_fix_len = all_string_container.back().size();
+    if (splitted[F_LEG_CTR_FIX+1].size() == 2) {
+        new_leg.region_code_ctr_fix[0] = splitted[F_LEG_CTR_FIX+1][0];
+        new_leg.region_code_ctr_fix[1] = splitted[F_LEG_CTR_FIX+1][1];
+    } else {
+        new_leg.region_code_ctr_fix[0] = new_leg.region_code_ctr_fix[1] = 0;
+    }
 
     all_string_container.push_back(splitted[F_LEG_RECC_NAVAID]);
     new_leg.recomm_navaid     = all_string_container.back().c_str();
     new_leg.recomm_navaid_len = all_string_container.back().size();
-
+    if (splitted[F_LEG_RECC_NAVAID+1].size() == 2) {
+        new_leg.region_code_rec_navaid[0] = splitted[F_LEG_RECC_NAVAID+1][0];
+        new_leg.region_code_rec_navaid[1] = splitted[F_LEG_RECC_NAVAID+1][1];
+    } else {
+        new_leg.region_code_rec_navaid[0] = new_leg.region_code_ctr_fix[1] = 0;
+    }
     new_leg.fly_over_wpt = false;
     new_leg.approach_iaf = false;
     new_leg.approach_if  = false;

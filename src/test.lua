@@ -66,6 +66,7 @@ local function expose_functions()
         
         print(nav_array.len)
         print(nav_array.navaids[1].id_len)
+        print("REGION CODE: " .. nav_array.navaids[1].region_code[0] .. nav_array.navaids[1].region_code[1])
         print(nav_array.navaids[1].full_name_len)
         print(ffi.string(nav_array.navaids[1].full_name, nav_array.navaids[1].full_name_len))
         
