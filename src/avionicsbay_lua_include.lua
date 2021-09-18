@@ -218,6 +218,7 @@ return [[
         uint16_t rte_hold;        // Route distance / Hold time/dist - distance in nm * 10 
         uint16_t vpath_angle;   // Only for descent, to be considered as negative
     
+        char region_code_leg_name[2];
         char region_code_ctr_fix[2];
         char region_code_rec_navaid[2];
     

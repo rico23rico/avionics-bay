@@ -349,6 +349,13 @@ void CIFPParser::parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::st
     new_leg.leg_name     = all_string_container.back().c_str();
     new_leg.leg_name_len = all_string_container.back().size();
 
+    if (splitted[F_LEG_NAME+1].size() == 2) {
+        new_leg.region_code_leg_name[0] = splitted[F_LEG_NAME+1][0];
+        new_leg.region_code_leg_name[1] = splitted[F_LEG_NAME+1][1];
+    } else {
+        new_leg.region_code_leg_name[0] = new_leg.region_code_leg_name[1] = 0;
+    }
+
     new_leg.turn_direction = compute_turn(splitted[F_LEG_TURN], splitted[F_LEG_TDV]);
     new_leg.leg_type       = get_leg_type(splitted[F_LEG_TYPE]);
 
