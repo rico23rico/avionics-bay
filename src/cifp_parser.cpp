@@ -391,7 +391,7 @@ void CIFPParser::parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::st
         new_leg.region_code_rec_navaid[0] = splitted[F_LEG_RECC_NAVAID+1][0];
         new_leg.region_code_rec_navaid[1] = splitted[F_LEG_RECC_NAVAID+1][1];
     } else {
-        new_leg.region_code_rec_navaid[0] = new_leg.region_code_ctr_fix[1] = 0;
+        new_leg.region_code_rec_navaid[0] = new_leg.region_code_rec_navaid[1] = 0;
     }
     new_leg.fly_over_wpt = false;
     new_leg.approach_iaf = false;
