@@ -228,7 +228,7 @@ int safe_alt(const std::string &str, bool &is_fl) {
     }
 }
 
-uint8_t compute_alt_type(const std::string &alt_type) {
+uint8_t compute_alt_type(const std::string &alt_type, const std::string &alt_val) {
     if(alt_type.size() != 1) {
         throw std::runtime_error("Invalid ALT Type.");
     }
@@ -243,7 +243,12 @@ uint8_t compute_alt_type(const std::string &alt_type) {
         case '@':
         case 'X':
         case ' ':
-            return NAV_CIFP_CSTR_ALT_AT;
+            // The " " represents the "AT" constraints only if we have a value in
+            // the first altitude, otherwise is a "NO CONSTRAINT" case
+            if(alt_val.find_first_not_of(' ') != std::string::npos)
+                return NAV_CIFP_CSTR_ALT_AT;
+            else
+                return NAV_CIFP_CSTR_ALT_NONE;
         case 'B':
             return NAV_CIFP_CSTR_ALT_ABOVE_BELOW;
         case 'C':
@@ -255,6 +260,7 @@ uint8_t compute_alt_type(const std::string &alt_type) {
             return NAV_CIFP_CSTR_ALT_GLIDE;
     }
 
+    // We should never arrive here
     return NAV_CIFP_CSTR_ALT_NONE;
 }
 
@@ -365,7 +371,7 @@ void CIFPParser::parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::st
     new_leg.outb_mag = safe_stoi(splitted[F_LEG_OB_MAG]);
     new_leg.rte_hold = safe_stoi(splitted[F_LEG_RTE_HOLD]);
     
-    new_leg.cstr_alt_type  = compute_alt_type(splitted[F_LEG_ALT_TYPE]);
+    new_leg.cstr_alt_type  = compute_alt_type(splitted[F_LEG_ALT_TYPE], splitted[F_LEG_ALT1]);
     new_leg.cstr_altitude1 = safe_alt(splitted[F_LEG_ALT1], new_leg.cstr_altitude1_fl);
     new_leg.cstr_altitude2 = safe_alt(splitted[F_LEG_ALT2], new_leg.cstr_altitude2_fl);
     
