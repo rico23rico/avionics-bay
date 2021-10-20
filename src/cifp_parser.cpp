@@ -95,6 +95,11 @@ bool CIFPParser::is_ready() noexcept {
 
 void CIFPParser::task(const std::string &arpt_id) noexcept {
 
+    if (already_loaded_apts.find(arpt_id) != already_loaded_apts.end()) {
+        return;
+    }
+
+    already_loaded_apts.insert(arpt_id);
 
 #if defined(__linux__)
     pthread_setname_np(pthread_self(), "CIFPParser");   // For debugging purposes

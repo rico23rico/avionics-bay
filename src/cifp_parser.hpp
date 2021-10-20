@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
     
 namespace avionicsbay {
@@ -43,6 +44,8 @@ private:
     int legs_array_progressive=0;
     std::unordered_map<int, std::vector<xpdata_cifp_leg_t>> legs_array;
     std::vector<xpdata_cifp_rwy_data_t> rwys_array;
+
+    std::unordered_set<std::string> already_loaded_apts;
 
     void task(const std::string &arpt_id) noexcept;
     void parse_cifp_file(const std::string &arpt_id);

@@ -130,6 +130,11 @@ local function load_avionicsbay()
     print("NR APPS: " .. a.apprs.len)
     print("NR CIFP RWYS: " .. a.rwys.len)
 
+    for i=0,a.stars.len-1 do
+        local x = a.stars.data[i]
+        print(i, ffi.string(x.proc_name), ffi.string(x.trans_name), x.legs_len)
+    end
+
     local x = convert_cifp_array(false, a.sids)
     local x = convert_cifp_array(false, a.stars)
     local x = convert_cifp_array(false, a.apprs)
