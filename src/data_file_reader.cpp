@@ -378,6 +378,11 @@ void DataFileReader::parse_fixes_file_line(int line_no, const std::string &line)
         return;     // Something invalid here
     }
 
+    if (splitted[3].size() < 2) {
+        LOG << logger_level_t::WARN << "[DataFileReader] earth_fix.dat:" << line_no << ": invalid airport id." << ENDL;
+        return;     // Something invalid here
+    }
+
     try {
         
         all_string_container.push_back(splitted[2]);
@@ -392,6 +397,7 @@ void DataFileReader::parse_fixes_file_line(int line_no, const std::string &line)
                 .lon = std::stod(splitted[1])
             },
             .region_code = {splitted[4][0],splitted[4][1]},
+            .airport_id  = {splitted[3][0],splitted[3][1],splitted[3][2],splitted[3][3]}
         };
     
         xpdata->push_fix(std::move(fix));
