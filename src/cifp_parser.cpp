@@ -410,6 +410,7 @@ void CIFPParser::parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::st
     new_leg.approach_if  = false;
     new_leg.approach_faf = false;
     new_leg.holding_fix  = false;
+    new_leg.first_missed_app = false;
     
     const std::string &flags = splitted[F_LEG_FLAGS];
     if(flags.size() >=2) {
@@ -417,6 +418,11 @@ void CIFPParser::parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::st
             new_leg.fly_over_wpt = true;
         }
     } 
+    if(flags.size() >=3) {
+        if (flags[3] == 'M') {
+            new_leg.first_missed_app = true;
+        }
+    }
     if(flags.size() >=4) {
         if (flags[3] == 'A') {
             new_leg.approach_iaf = true;
