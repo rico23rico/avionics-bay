@@ -2,6 +2,7 @@
 
 #include "utilities/logger.hpp"
 #include "api.hpp"
+#include "wmm_interface.hpp"
 
 #include <cassert>
 #include <cstring>
@@ -99,6 +100,10 @@ bool initialize(const char* xplane_path, const char* plane_path) {
     }
     
     if (! avionicsbay::init_cifp_parser(xplane_path)) {
+        return false;
+    }
+
+    if (! avionicsbay::init_wmm_interface(plane_path)) {
         return false;
     }
 

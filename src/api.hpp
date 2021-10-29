@@ -42,6 +42,9 @@ extern "C" {
     EXPORT_DLL bool is_cifp_ready();
 
     EXPORT_DLL bool xpdata_is_ready(void);
+
+    EXPORT_DLL double get_declination(double lat, double lon, unsigned short year);
+
 }
 
 namespace avionicsbay {

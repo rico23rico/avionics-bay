@@ -4,7 +4,7 @@ local ffi = require("ffi")
 
 local PATH_LIBRARY = "./build/libavionicsbay.so"
 local PATH_XPLANE  = "/usr/share/X-Plane 11/"
-local PATH_LOGFILE = "/tmp/"
+local PATH_LOGFILE = "/usr/share/X-Plane 11/Aircraft/Downloaded/A321Neo-FXPL/"
 
 local AvionicsBay = {}
 
@@ -113,6 +113,8 @@ local function load_avionicsbay()
     expose_functions()
 
     AvionicsBay.c.set_acf_coords(32.149534655, -110.83512209);
+
+    print(AvionicsBay.c.get_declination(5, -30, 2020))
 
     print("WAIT")
     while not AvionicsBay.c.xpdata_is_ready() do

@@ -2,6 +2,7 @@
 
 #include "plugin.hpp"
 #include "triangulator.hpp"
+#include "wmm_interface.hpp"
 
 static avionicsbay::XPData* xpdata;
 static avionicsbay::Triangulator t;
@@ -216,6 +217,14 @@ EXPORT_DLL void load_cifp(const char* airport_id) {
 
 EXPORT_DLL bool is_cifp_ready() {
     return avionicsbay::get_cifp()->is_ready();
+}
+
+/**************************************************************************************************/
+/** WMM **/
+/**************************************************************************************************/
+
+EXPORT_DLL double get_declination(double lat, double lon, unsigned short year) {
+    return avionicsbay::get_declination(lat, lon, year);
 }
 
 namespace avionicsbay {

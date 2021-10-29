@@ -12,7 +12,9 @@ set(SOURCES api.cpp
             plugin.cpp
             triangulator.cpp
             xpdata.cpp
-            utilities/logger.cpp)
+            utilities/logger.cpp
+            wmm/GeomagnetismLibrary.cpp
+            wmm_interface.cpp)
 
 add_library(avionicsbay SHARED ${SOURCES})
 
