@@ -419,7 +419,7 @@ void CIFPParser::parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::st
         }
     } 
     if(flags.size() >=3) {
-        if (flags[3] == 'M') {
+        if (flags[2] == 'M') {
             new_leg.first_missed_app = true;
         }
     }
