@@ -46,6 +46,13 @@ public:
     void set_is_ready(bool is_ready) noexcept { this->is_ready = is_ready; }
     bool get_is_ready() const        noexcept { return this->is_ready; }
 
+    void set_navdata_cycle(unsigned int month, unsigned int year) noexcept { 
+        this->navdata_month = month;
+        this->navdata_year = year;
+    }
+    unsigned int get_navdata_year() const    noexcept { return this->navdata_year; }
+    unsigned int get_navdata_month() const   noexcept { return this->navdata_month; }
+
 /**************************************************************************************************/
 /** NAVAIDS **/
 /**************************************************************************************************/
@@ -136,6 +143,9 @@ private:
     
     const xpdata_apt_t *nearest_airport = nullptr; // can be nullptr at any time
     std::mutex mx_nearest_airport;
+
+    unsigned int navdata_year  = 0;
+    unsigned int navdata_month = 0;
 
     xpdata_apt_node_array_t *last_pushed_node_array = nullptr;
 

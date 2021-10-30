@@ -44,6 +44,8 @@ extern "C" {
     EXPORT_DLL bool xpdata_is_ready(void);
 
     EXPORT_DLL double get_declination(double lat, double lon, unsigned short year);
+    EXPORT_DLL unsigned int get_navdata_year();
+    EXPORT_DLL unsigned int get_navdata_month();
 
 }
 

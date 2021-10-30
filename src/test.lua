@@ -114,7 +114,8 @@ local function load_avionicsbay()
 
     AvionicsBay.c.set_acf_coords(32.149534655, -110.83512209);
 
-    print(AvionicsBay.c.get_declination(5, -30, 2020))
+    print(AvionicsBay.c.get_navdata_month(), AvionicsBay.c.get_navdata_year())
+    print("Test declination: ", AvionicsBay.c.get_declination(5, -30, 2020))
 
     print("WAIT")
     while not AvionicsBay.c.xpdata_is_ready() do

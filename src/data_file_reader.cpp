@@ -266,7 +266,7 @@ void DataFileReader::parse_navaids_file() {
     std::string line;
     int line_no = 0;
     while (!ifs.eof() && std::getline(ifs, line) && !this->stop) {
-        if (line.size() > 0 and line[0] != 'I' and (line[0] != '9' or line[1] != '9') and (line_no > 1)) {
+        if (line.size() > 0 and line[0] != 'I' and (line[0] != '9' or line[1] != '9') and (line_no >= 1)) {
             parse_navaids_file_line(line_no, line);
         }
         line_no++;
@@ -282,6 +282,14 @@ void DataFileReader::parse_navaids_file_line(int line_no, const std::string &lin
     if (splitted.size() < 10) {
         LOG << logger_level_t::WARN << "[DataFileReader] earth_nav.dat:" << line_no << ": invalid nr. parameters." << ENDL;
         return;     // Something invalid here
+    }
+
+    if (splitted[0] == "1150" && splitted[4] == "cycle") {
+        unsigned int year  = 2000 + std::stoi(splitted[5].substr(0,2));
+        unsigned int month = std::stoi(splitted[5].substr(2));
+        xpdata->set_navdata_cycle(month, year);
+        LOG << logger_level_t::NOTICE << "[DataFileReader] earth_nav.dat: CIFP date: " << year << month << ENDL;
+        return;
     }
     
     if(splitted[9].size() < 2) {

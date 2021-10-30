@@ -227,6 +227,20 @@ EXPORT_DLL double get_declination(double lat, double lon, unsigned short year) {
     return avionicsbay::get_declination(lat, lon, year);
 }
 
+/**************************************************************************************************/
+/** NAVDATA **/
+/**************************************************************************************************/
+EXPORT_DLL unsigned int get_navdata_year() {
+    SANITY_CHECK_INT();
+    return xpdata->get_navdata_year();
+}
+
+EXPORT_DLL unsigned int get_navdata_month() {
+    SANITY_CHECK_INT();
+    return xpdata->get_navdata_month();
+}
+
+
 namespace avionicsbay {
     void api_init() noexcept {
         xpdata = get_xpdata().get();
