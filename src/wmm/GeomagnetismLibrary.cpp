@@ -312,7 +312,7 @@ int MAG_robustReadMagneticModel_Large(char *filename, char *filenameSV, MAGtype_
     return 1;
 } /*MAG_robustReadMagneticModel_Large*/
 
-int MAG_robustReadMagModels(char *filename, MAGtype_MagneticModel *(*magneticmodels)[], int array_size)
+int MAG_robustReadMagModels(char *filename, MAGtype_MagneticModel *(*magneticmodels)[1], int array_size)
 {
     char line[MAXLINELENGTH];
     int n, nMax = 0, num_terms, a;
@@ -1590,7 +1590,7 @@ void MAG_PrintEMMFormat(char *filename, char *filenameSV, MAGtype_MagneticModel 
     return;
 } /*MAG_PrintEMMFormat*/
 
-void MAG_PrintSHDFFormat(char *filename, MAGtype_MagneticModel *(*MagneticModel)[], int epochs)
+void MAG_PrintSHDFFormat(char *filename, MAGtype_MagneticModel *(*MagneticModel)[1], int epochs)
 {
     	int i, n, m, index, epochRange;
 	FILE *SHDF_file;
@@ -1677,7 +1677,9 @@ int MAG_readMagneticModel(const char *filename, MAGtype_MagneticModel * Magnetic
     MagneticModel->Main_Field_Coeff_G[0] = 0.0;
     MagneticModel->Secular_Var_Coeff_H[0] = 0.0;
     MagneticModel->Secular_Var_Coeff_G[0] = 0.0;
-    fgets(c_str, 80, MAG_COF_File);
+    if( NULL == fgets(c_str, 80, MAG_COF_File)) {
+        return FALSE;
+    }
     sscanf(c_str, "%lf%s", &epoch, MagneticModel->ModelName);
     MagneticModel->epoch = epoch;
     while(EOF_Flag == 0)
@@ -1713,7 +1715,7 @@ int MAG_readMagneticModel(const char *filename, MAGtype_MagneticModel * Magnetic
     return TRUE;
 } /*MAG_readMagneticModel*/
 
-int MAG_readMagneticModel_Large(const char *filename, char *filenameSV, MAGtype_MagneticModel *MagneticModel)
+int MAG_readMagneticModel_Large(char *filename, char *filenameSV, MAGtype_MagneticModel *MagneticModel)
 
 /*  To read the high-degree model coefficients (for example, NGDC 720)
    INPUT :  filename   file name for static coefficients
@@ -1804,7 +1806,7 @@ int MAG_readMagneticModel_Large(const char *filename, char *filenameSV, MAGtype_
     return TRUE;
 } /*MAG_readMagneticModel_Large*/
 
-int MAG_readMagneticModel_SHDF(char *filename, MAGtype_MagneticModel *(*magneticmodels)[], int array_size)
+int MAG_readMagneticModel_SHDF(char *filename, MAGtype_MagneticModel *(*magneticmodels)[1], int array_size)
 /*
  * MAG_readMagneticModels - Read the Magnetic Models from an SHDF format file
  *
