@@ -12,6 +12,11 @@
 #include "data_file_reader.hpp"
 #include "utilities/logger.hpp"
 
+#ifndef GIT_COMMIT_HASH
+#define GIT_COMMIT_HASH "Unknown"
+#endif
+#define AVIONICSBAY_VERSION "1.0.1"
+
 #include <memory>
 
 namespace avionicsbay {

@@ -89,10 +89,11 @@ bool initialize(const char* xplane_path, const char* plane_path) {
     } catch(...) {
         fatal_error = "Unable to open the log file.";
         return false;
-    }
+    } 
 
     LOG << logger_level_t::INFO << "Initializing avionicsbay..." << ENDL;
-
+    LOG << logger_level_t::INFO << "Version: " << AVIONICSBAY_VERSION << " - Commit Hash: " << GIT_COMMIT_HASH << ENDL;
+    
     xpdata = std::make_shared<XPData>();
 
     if (! avionicsbay::init_data_file_reader(xplane_path)) {

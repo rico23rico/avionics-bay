@@ -1,6 +1,16 @@
 project(avionicsbay LANGUAGES CXX DESCRIPTION "Avionics Bay - X-Plane manager for data files")
 cmake_minimum_required(VERSION 3.10)
 
+if (GITHUB)
+
+    execute_process(
+      COMMAND git log -1 --format=%H
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      OUTPUT_VARIABLE GIT_COMMIT_HASH
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    add_definitions("-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
+endif(GITHUB)
 
 # Set C++14 standard
 set(CMAKE_CXX_STANDARD 17)
