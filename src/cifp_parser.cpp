@@ -373,7 +373,8 @@ void CIFPParser::parse_leg(xpdata_cifp_leg_t &new_leg, const std::vector<std::st
     new_leg.radius   = safe_stoi(splitted[F_LEG_RADIUS]);
     new_leg.theta    = safe_stoi(splitted[F_LEG_THETA]);
     new_leg.rho      = safe_stoi(splitted[F_LEG_RHO]);
-    new_leg.outb_mag = safe_stoi(splitted[F_LEG_OB_MAG]);
+    new_leg.outb_mag_in_true = splitted[F_LEG_OB_MAG][splitted[F_LEG_OB_MAG].size()-1] == 'T';
+    new_leg.outb_mag = safe_stoi(new_leg.outb_mag_in_true ? splitted[F_LEG_OB_MAG].substr(0,splitted[F_LEG_OB_MAG].size()-1) : splitted[F_LEG_OB_MAG]);
     new_leg.rte_hold_in_time = splitted[F_LEG_RTE_HOLD][0] == 'T';
     new_leg.rte_hold = safe_stoi(new_leg.rte_hold_in_time ? splitted[F_LEG_RTE_HOLD].substr(1) : splitted[F_LEG_RTE_HOLD]);
     
